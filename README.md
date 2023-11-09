@@ -1,8 +1,8 @@
-# Stamp CLI Tool
+# stmp CLI Tool
 
 ## Introduction
 
-Stamp is a command-line interface (CLI) tool designed to help developers and other professionals track their work hours and notes. Born out of the need for a simple, flexible, and efficient time tracking tool, Stamp aims to make time management as seamless as possible.
+stmp is a command-line interface (CLI) tool designed to help developers and other professionals track their work hours and notes. Born out of the need for a simple, flexible, and efficient time tracking tool, stmp aims to make time management as seamless as possible.
 
 ## Features
 
@@ -18,52 +18,39 @@ Configure your machine in such a way, that start and end time are automatically 
 
 ## Installation
 
-### Requirements
-
-- Python ^3.9
-- Poetry ^1.7.0
-
-To install Stamp, follow these steps:
+To install stmp, follow these steps:
 
 1. Clone the repository: 
 ```bash
-git clone https://github.com/hannesortmeier/stamp.git
-```
-2. Navigate to the cloned directory:
-```bash
-cd stamp
-```
-3. Install the required Python packages:
-```bash
-poetry install
+pip install stmp
 ```
 
 ## Usage
 
-To use Stamp, you can use the following commands:
+To use stmp, you can use the following commands:
 
 - To add a working hours and notes for a day:
 ```bash
-python stamp.py add --date YYYY-MM-DD --start_time HH:MM --end_time HH:MM --break_duration MM --note "Your note"
+python stmp.py add --date YYYY-MM-DD --start_time HH:MM --end_time HH:MM --break_duration MM --note "Your note"
 ```
 You can omit almost all arguments:
 ```bash
-python stamp.py add --start_time HH:MM
+python stmp.py add --start_time HH:MM
 ```
 
 - To view records for a day:
 ```bash
-python stamp.py show --date YYYY-MM-DD --format json
+python stmp.py show --date YYYY-MM-DD --format json
 ```
 If you want to view the records for the current day, you can omit the --date argument:
 ```bash
-python stamp.py show
+python stmp.py show
 ```
 
 - Included help text:
 ```bash
-❯ python stamp.py -h
-usage: stamp.py [-h] {add,rm,show,dump,check} ...
+❯ python stmp.py -h
+usage: stmp.py [-h] {add,rm,show,dump,check} ...
 
 Record working hours.
 
@@ -81,7 +68,7 @@ options:
 This tool allows you to record your working hours and breaks, and manage notes.
 
 To add a record:
-    stamp add -d <date> -s <start_time> -e <end_time> -b <break_duration> -n <note> -o <overwrite>
+    stmp add -d <date> -s <start_time> -e <end_time> -b <break_duration> -n <note> -o <overwrite>
     -d, --date: Date in YYYY-MM-DD format. If not specified, the current date is used.
     -s, --start_time: Start time in HH:MM format. If not specified, the existing value is used.
     -e, --end_time: End time in HH:MM format. If not specified, the existing value is used.
@@ -90,27 +77,27 @@ To add a record:
     -o, --overwrite: Boolean to indicate whether to overwrite existing data. Default is True.
 
 To remove a record:
-    stamp rm -i <id> -d <date>
+    stmp rm -i <id> -d <date>
     -i, --id: ID of the note to remove.
     -d, --date: Date of the record to remove.
 
 To show records for a date:
-    stamp show -d <date> -f <format>
+    stmp show -d <date> -f <format>
     -d, --date: Date for which to show records. If not specified, records for the current date are shown.
     -f, --format: Format to show records. Default is "table".
 
 To dump all data:
-    stamp dump -d <destination>
+    stmp dump -d <destination>
     -d, --destination: Destination folder for the dumped data.
 
 To check the database entries for completeness:
-    stamp check
+    stmp check
 ```
 
 
 ## License
 
-Stamp is licensed under the [MIT License](LICENSE).
+stmp is licensed under the [MIT License](LICENSE).
 
 ## Contact
 

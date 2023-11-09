@@ -11,9 +11,9 @@ WORK_HOURS_TABLE_NAME = "work_hours"
 NOTES_TABLE_NAME = "notes"
 
 
-class Stamp:
+class stmp:
     """
-    The Stamp class handles the creation and management of work_hours and notes tables in a SQLite database.
+    The stmp class handles the creation and management of work_hours and notes tables in a SQLite database.
 
     Attributes:
         db (Database): The SQLite database to operate on.
@@ -429,13 +429,13 @@ class Stamp:
 
 def create_dir_if_not_exists() -> str:
         """
-        Creates the .stamp directory in the home directory if it doesn't exist.
+        Creates the .stmp directory in the home directory if it doesn't exist.
         
-        Returns the path to the .stamp directory.
+        Returns the path to the .stmp directory.
         """
-        stamp_dir = os.path.join(os.path.expanduser("~"), ".stamp")
-        os.makedirs(stamp_dir, exist_ok=True)
-        return stamp_dir
+        stmp_dir = os.path.join(os.path.expanduser("~"), ".stmp")
+        os.makedirs(stmp_dir, exist_ok=True)
+        return stmp_dir
 
 def main():
      # Parse command-line arguments
@@ -445,7 +445,7 @@ def main():
 This tool allows you to record your working hours and breaks, and manage notes.
 
 To add a record:
-    stamp add -d <date> -s <start_time> -e <end_time> -b <break_duration> -n <note> -o <overwrite>
+    stmp add -d <date> -s <start_time> -e <end_time> -b <break_duration> -n <note> -o <overwrite>
     -d, --date: Date in YYYY-MM-DD format. If not specified, the current date is used.
     -s, --start_time: Start time in HH:MM format. If not specified, the existing value is used.
     -e, --end_time: End time in HH:MM format. If not specified, the existing value is used.
@@ -454,21 +454,21 @@ To add a record:
     -o, --overwrite: Boolean to indicate whether to overwrite existing data. Default is True.
 
 To remove a record:
-    stamp rm -i <id> -d <date>
+    stmp rm -i <id> -d <date>
     -i, --id: ID of the note to remove.
     -d, --date: Date of the record to remove.
 
 To show records for a date:
-    stamp show -d <date> -f <format>
+    stmp show -d <date> -f <format>
     -d, --date: Date for which to show records. If not specified, records for the current date are shown.
     -f, --format: Format to show records. Default is "table".
     
 To dump all data:
-    stamp dump -d <destination>
+    stmp dump -d <destination>
     -d, --destination: Destination folder for the dumped data.
 
 To check the database entries for completeness:
-    stamp check
+    stmp check
 """,
         formatter_class=argparse.RawTextHelpFormatter,
     )
@@ -524,11 +524,11 @@ To check the database entries for completeness:
     args = parser.parse_args()
     
 
-    # Initialize and execute Stamp
-    stamp_dir = create_dir_if_not_exists()
-    db = Database(os.path.join(stamp_dir, "stamp.db"))
+    # Initialize and execute stmp
+    stmp_dir = create_dir_if_not_exists()
+    db = Database(os.path.join(stmp_dir, "stmp.db"))
     try:
-        self = Stamp(db, args)
+        self = stmp(db, args)
         self.execute(parser)
     except Exception as e:
         raise e

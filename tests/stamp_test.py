@@ -5,10 +5,10 @@ from sqlite3 import Cursor
 from sqlite_utils import Database
 from io import StringIO
 from unittest.mock import ANY, patch, mock_open
-from stamp.stamp import Stamp
+from stmp.stmp import stmp
 
 
-class TestStamp(unittest.TestCase):
+class Teststmp(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         # Specify the database file path
@@ -31,10 +31,10 @@ class TestStamp(unittest.TestCase):
             note="Test note",
             overwrite=True,
         )
-        stamp = Stamp(Database("test1.db"), args)
+        stmp = stmp(Database("test1.db"), args)
 
-        stamp.set_default_date()
-        self.assertIsNotNone(stamp.args.date)
+        stmp.set_default_date()
+        self.assertIsNotNone(stmp.args.date)
 
     def test_add_parser(self):
         args = argparse.Namespace(
@@ -46,11 +46,11 @@ class TestStamp(unittest.TestCase):
             note="Test note",
             overwrite=True,
         )
-        stamp = Stamp(Database("test2.db"), args)
+        stmp = stmp(Database("test2.db"), args)
 
         # test update_notes
-        stamp.update_notes()
-        cursor: Cursor = stamp.db.execute(
+        stmp.update_notes()
+        cursor: Cursor = stmp.db.execute(
             "SELECT * FROM notes WHERE date = '2020-01-01'"
         )
         id, date, note = cursor.fetchone()
@@ -58,8 +58,8 @@ class TestStamp(unittest.TestCase):
         self.assertEqual(note, "Test note")
 
         # test insert_work_hours
-        stamp.update_work_hours()
-        cursor: Cursor = stamp.db.execute(
+        stmp.update_work_hours()
+        cursor: Cursor = stmp.db.execute(
             "SELECT * FROM work_hours WHERE date = '2020-01-01'"
         )
         date, start_time, end_time, break_duration = cursor.fetchone()
@@ -78,9 +78,9 @@ class TestStamp(unittest.TestCase):
             note="Test note",
             overwrite=True,
         )
-        stamp.args = args
-        stamp.update_work_hours()
-        cursor: Cursor = stamp.db.execute(
+        stmp.args = args
+        stmp.update_work_hours()
+        cursor: Cursor = stmp.db.execute(
             "SELECT start_time FROM work_hours WHERE date = '2020-01-01'"
         )
         self.assertEqual(cursor.fetchone()[0], "07:00")
@@ -95,9 +95,9 @@ class TestStamp(unittest.TestCase):
             note=None,
             overwrite=False,
         )
-        stamp.args = args
-        stamp.update_work_hours()
-        cursor: Cursor = stamp.db.execute(
+        stmp.args = args
+        stmp.update_work_hours()
+        cursor: Cursor = stmp.db.execute(
             "SELECT start_time FROM work_hours WHERE date = '2020-01-01'"
         )
         self.assertEqual(cursor.fetchone()[0], "07:00")
@@ -106,11 +106,11 @@ class TestStamp(unittest.TestCase):
         args = argparse.Namespace(
             command="add", date="2020-02-01", note="Test note", overwrite=True
         )
-        stamp = Stamp(Database("test3.db"), args)
+        stmp = stmp(Database("test3.db"), args)
 
         # add note
-        stamp.update_notes()
-        cursor: Cursor = stamp.db.execute(
+        stmp.update_notes()
+        cursor: Cursor = stmp.db.execute(
             "SELECT * FROM notes WHERE date = '2020-02-01'"
         )
         id, date, note = cursor.fetchone()
@@ -119,10 +119,10 @@ class TestStamp(unittest.TestCase):
 
         # test remove_note
         args = argparse.Namespace(command="rm", id=id)
-        stamp.args = args
-        stamp.remove_note()
+        stmp.args = args
+        stmp.remove_note()
 
-        cursor: Cursor = stamp.db.execute(
+        cursor: Cursor = stmp.db.execute(
             "SELECT * FROM notes WHERE date = '2020-02-01'"
         )
         self.assertIsNone(cursor.fetchone())
@@ -137,11 +137,11 @@ class TestStamp(unittest.TestCase):
             note="Test note",
             overwrite=True,
         )
-        stamp = Stamp(Database("test3.db"), args)
+        stmp = stmp(Database("test3.db"), args)
 
         # add work hours
-        stamp.update_work_hours()
-        cursor: Cursor = stamp.db.execute(
+        stmp.update_work_hours()
+        cursor: Cursor = stmp.db.execute(
             "SELECT * FROM work_hours WHERE date = '2020-02-01'"
         )
         date, start_time, end_time, break_duration = cursor.fetchone()
@@ -152,10 +152,10 @@ class TestStamp(unittest.TestCase):
 
         # test remove_work_hours
         args = argparse.Namespace(command="rm", date="2020-02-01")
-        stamp.args = args
-        stamp.remove_work_hours()
+        stmp.args = args
+        stmp.remove_work_hours()
 
-        cursor: Cursor = stamp.db.execute(
+        cursor: Cursor = stmp.db.execute(
             "SELECT * FROM work_hours WHERE date = '2020-02-01'"
         )
         self.assertIsNone(cursor.fetchone())
@@ -171,16 +171,16 @@ class TestStamp(unittest.TestCase):
             note="Test note",
             overwrite=True,
         )
-        stamp = Stamp(Database("test3.db"), args)
+        stmp = stmp(Database("test3.db"), args)
 
         # add work hours and notes
-        stamp.update_work_hours()
-        stamp.update_notes()
-        work_hours_cursor: Cursor = stamp.db.execute(
+        stmp.update_work_hours()
+        stmp.update_notes()
+        work_hours_cursor: Cursor = stmp.db.execute(
             "SELECT * FROM work_hours WHERE date = '2020-02-01'"
         )
         date, start_time, end_time, break_duration = work_hours_cursor.fetchone()
-        notes_cursor: Cursor = stamp.db.execute(
+        notes_cursor: Cursor = stmp.db.execute(
             "SELECT * FROM notes WHERE date = '2020-02-01'"
         )
         id, date, note = notes_cursor.fetchone()
@@ -192,9 +192,9 @@ class TestStamp(unittest.TestCase):
 
         # show json
         args = argparse.Namespace(command="show", date="2020-02-01", format="json")
-        stamp.args = args
+        stmp.args = args
 
-        stamp.show_data()
+        stmp.show_data()
         self.assertEqual(
             mock_stdout.getvalue(),
             """{
@@ -218,9 +218,9 @@ class TestStamp(unittest.TestCase):
         mock_stdout.seek(0)
 
         args = argparse.Namespace(command="show", date="2020-02-01", format="table")
-        stamp.args = args
+        stmp.args = args
 
-        stamp.show_data()
+        stmp.show_data()
         self.assertEqual(
             mock_stdout.getvalue(),
             """| date       | start_time   | end_time   |   break_duration |   note_id | note      |
@@ -234,9 +234,9 @@ class TestStamp(unittest.TestCase):
         mock_stdout.seek(0)
 
         args = argparse.Namespace(command="show", date="2020-02-01", format="markdown")
-        stamp.args = args
+        stmp.args = args
 
-        stamp.show_data()
+        stmp.show_data()
         self.assertEqual(
             mock_stdout.getvalue(),
             """## 2020-02-01
@@ -247,7 +247,7 @@ class TestStamp(unittest.TestCase):
         )
 
     @patch("builtins.open", new_callable=mock_open)
-    @patch.object(Stamp, "dump_to_file")
+    @patch.object(stmp, "dump_to_file")
     def test_dump_data(self, mock_dump_to_file, mock_open):
         args = argparse.Namespace(
             command="add",
@@ -258,16 +258,16 @@ class TestStamp(unittest.TestCase):
             note="Test note",
             overwrite=True,
         )
-        stamp = Stamp(Database("test4.db"), args)
+        stmp = stmp(Database("test4.db"), args)
 
         # add work hours and notes
-        stamp.update_work_hours()
-        stamp.update_notes()
-        work_hours_cursor: Cursor = stamp.db.execute(
+        stmp.update_work_hours()
+        stmp.update_notes()
+        work_hours_cursor: Cursor = stmp.db.execute(
             "SELECT * FROM work_hours WHERE date = '2020-02-01'"
         )
         date, start_time, end_time, break_duration = work_hours_cursor.fetchone()
-        notes_cursor: Cursor = stamp.db.execute(
+        notes_cursor: Cursor = stmp.db.execute(
             "SELECT * FROM notes WHERE date = '2020-02-01'"
         )
         id, date, note = notes_cursor.fetchone()
@@ -279,8 +279,8 @@ class TestStamp(unittest.TestCase):
 
         # dump
         args = argparse.Namespace(command="dump", destination=".")
-        stamp.args = args
-        stamp.dump_data()
+        stmp.args = args
+        stmp.dump_data()
         mock_dump_to_file.assert_called()
         print(mock_dump_to_file.call_args_list)
         mock_dump_to_file.assert_any_call(ANY, "notes")
@@ -297,11 +297,11 @@ class TestStamp(unittest.TestCase):
             note="Test note",
             overwrite=True,
         )
-        stamp = Stamp(Database("test5.db"), args)
+        stmp = stmp(Database("test5.db"), args)
 
         # add complete work hours
-        stamp.update_work_hours()
-        work_hours_cursor: Cursor = stamp.db.execute(
+        stmp.update_work_hours()
+        work_hours_cursor: Cursor = stmp.db.execute(
             "SELECT * FROM work_hours WHERE date = '2020-02-01'"
         )
         date, start_time, end_time, break_duration = work_hours_cursor.fetchone()
@@ -312,8 +312,8 @@ class TestStamp(unittest.TestCase):
 
         # check
         args = argparse.Namespace(command="check")
-        stamp.args = args
-        stamp.check_data()
+        stmp.args = args
+        stmp.check_data()
         self.assertEqual(mock_stdout.getvalue(), "")
 
         # check
@@ -327,12 +327,12 @@ class TestStamp(unittest.TestCase):
             note="Test note",
             overwrite=True,
         )
-        stamp.args = args
-        stamp.update_work_hours()
+        stmp.args = args
+        stmp.update_work_hours()
 
         args = argparse.Namespace(command="check")
-        stamp.args = args
-        stamp.check_data()
+        stmp.args = args
+        stmp.check_data()
         self.assertEqual(
             mock_stdout.getvalue(),
             "Missing end_time for 2020-02-02\nMissing break_duration for 2020-02-02\n",

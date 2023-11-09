@@ -30,14 +30,14 @@ class FormatterFactory:
     
 
 
-class StampFormatter(ABC):
+class stmpFormatter(ABC):
     @abstractmethod
     def format(self, work_hours: dict) -> str:
         pass
 
 
 
-class JSONFormatter(StampFormatter):
+class JSONFormatter(stmpFormatter):
     """
     The JSONFormatter class implements the Formatter interface to provide JSON formatting.
 
@@ -50,7 +50,7 @@ class JSONFormatter(StampFormatter):
         return json.dumps(work_hours, indent=4)
 
 
-class MARKDOWNFormatter(StampFormatter):
+class MARKDOWNFormatter(stmpFormatter):
     """
     The MARKDOWNFormatter class implements the Formatter interface to provide Markdown formatting.
 
@@ -65,7 +65,7 @@ class MARKDOWNFormatter(StampFormatter):
             md += "\t- " + note["note"] + "\n"
         return md
 
-class TABLEFormatter(StampFormatter):
+class TABLEFormatter(stmpFormatter):
     """
     The TABLEFormatter class implements the Formatter interface to provide table formatting.
 

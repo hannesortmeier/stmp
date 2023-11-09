@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "stamp"
+name = "stmp"
 version = "0.1.0"
-description = "Stamp - The tool to record your working hours"
+description = "stmp - The tool to record your working hours"
 authors = ["Hannes Ortmeier <ortmeier.hannes@gmail.com>"]
 readme = "README.md"
 
@@ -16,4 +16,4 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-stamp = 'stamp:main'
+stmp = 'stmp:main'
