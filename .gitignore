@@ -1,0 +1,10 @@
+.mypy*
+.vscode
+
+*.db
+
+*.dump
+
+__pycache__
+
+dist
