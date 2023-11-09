@@ -16,4 +16,4 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-stmp = 'stmp:main'
+stmp = 'stmp.stmp:main'
