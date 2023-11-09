@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "stmp"
 version = "0.1.1"
-description = "stmp - The tool to record your working hours"
+description = "stmp - The tool to manage your working hours"
 authors = ["Hannes Ortmeier <ortmeier.hannes@gmail.com>"]
 readme = "README.md"
 

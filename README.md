@@ -31,25 +31,25 @@ To use stmp, you can use the following commands:
 
 - To add a working hours and notes for a day:
 ```bash
-python stmp.py add --date YYYY-MM-DD --start_time HH:MM --end_time HH:MM --break_duration MM --note "Your note"
+stmp add --date YYYY-MM-DD --start_time HH:MM --end_time HH:MM --break_duration MM --note "Your note"
 ```
 You can omit almost all arguments:
 ```bash
-python stmp.py add --start_time HH:MM
+stmp add --start_time HH:MM
 ```
 
 - To view records for a day:
 ```bash
-python stmp.py show --date YYYY-MM-DD --format json
+stmp show --date YYYY-MM-DD --format json
 ```
 If you want to view the records for the current day, you can omit the --date argument:
 ```bash
-python stmp.py show
+stmp show
 ```
 
 - Included help text:
 ```bash
-❯ python stmp.py -h
+❯ stmp -h
 usage: stmp.py [-h] {add,rm,show,dump,check} ...
 
 Record working hours.
