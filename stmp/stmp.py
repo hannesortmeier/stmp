@@ -5,13 +5,13 @@ from sqlite_utils import Database
 from sqlite_utils.db import NotFoundError, Table, View
 from datetime import datetime
 
-from formatting.formatter_factory import FormatterFactory
+from stmp.formatting.formatter_factory import FormatterFactory
 
 WORK_HOURS_TABLE_NAME = "work_hours"
 NOTES_TABLE_NAME = "notes"
 
 
-class stmp:
+class Stmp:
     """
     The stmp class handles the creation and management of work_hours and notes tables in a SQLite database.
 
@@ -528,7 +528,7 @@ To check the database entries for completeness:
     stmp_dir = create_dir_if_not_exists()
     db = Database(os.path.join(stmp_dir, "stmp.db"))
     try:
-        self = stmp(db, args)
+        self = Stmp(db, args)
         self.execute(parser)
     except Exception as e:
         raise e

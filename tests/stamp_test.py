@@ -5,7 +5,7 @@ from sqlite3 import Cursor
 from sqlite_utils import Database
 from io import StringIO
 from unittest.mock import ANY, patch, mock_open
-from stmp.stmp import stmp
+from stmp.stmp import Stmp
 
 
 class Teststmp(unittest.TestCase):
@@ -31,7 +31,7 @@ class Teststmp(unittest.TestCase):
             note="Test note",
             overwrite=True,
         )
-        stmp = stmp(Database("test1.db"), args)
+        stmp = Stmp(Database("test1.db"), args)
 
         stmp.set_default_date()
         self.assertIsNotNone(stmp.args.date)
@@ -46,7 +46,7 @@ class Teststmp(unittest.TestCase):
             note="Test note",
             overwrite=True,
         )
-        stmp = stmp(Database("test2.db"), args)
+        stmp = Stmp(Database("test2.db"), args)
 
         # test update_notes
         stmp.update_notes()
@@ -106,7 +106,7 @@ class Teststmp(unittest.TestCase):
         args = argparse.Namespace(
             command="add", date="2020-02-01", note="Test note", overwrite=True
         )
-        stmp = stmp(Database("test3.db"), args)
+        stmp = Stmp(Database("test3.db"), args)
 
         # add note
         stmp.update_notes()
@@ -137,7 +137,7 @@ class Teststmp(unittest.TestCase):
             note="Test note",
             overwrite=True,
         )
-        stmp = stmp(Database("test3.db"), args)
+        stmp = Stmp(Database("test3.db"), args)
 
         # add work hours
         stmp.update_work_hours()
@@ -171,7 +171,7 @@ class Teststmp(unittest.TestCase):
             note="Test note",
             overwrite=True,
         )
-        stmp = stmp(Database("test3.db"), args)
+        stmp = Stmp(Database("test3.db"), args)
 
         # add work hours and notes
         stmp.update_work_hours()
@@ -247,7 +247,7 @@ class Teststmp(unittest.TestCase):
         )
 
     @patch("builtins.open", new_callable=mock_open)
-    @patch.object(stmp, "dump_to_file")
+    @patch.object(Stmp, "dump_to_file")
     def test_dump_data(self, mock_dump_to_file, mock_open):
         args = argparse.Namespace(
             command="add",
@@ -258,7 +258,7 @@ class Teststmp(unittest.TestCase):
             note="Test note",
             overwrite=True,
         )
-        stmp = stmp(Database("test4.db"), args)
+        stmp = Stmp(Database("test4.db"), args)
 
         # add work hours and notes
         stmp.update_work_hours()
@@ -297,7 +297,7 @@ class Teststmp(unittest.TestCase):
             note="Test note",
             overwrite=True,
         )
-        stmp = stmp(Database("test5.db"), args)
+        stmp = Stmp(Database("test5.db"), args)
 
         # add complete work hours
         stmp.update_work_hours()
