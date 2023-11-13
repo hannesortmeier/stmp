@@ -5,7 +5,7 @@ from sqlite_utils import Database
 from sqlite_utils.db import NotFoundError, Table, View
 from datetime import datetime
 
-from formatting.formatter_factory import FormatterFactory
+from formatter_factory import FormatterFactory
 
 WORK_HOURS_TABLE_NAME = "work_hours"
 NOTES_TABLE_NAME = "notes"
