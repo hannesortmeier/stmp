@@ -5,7 +5,7 @@ from sqlite_utils import Database
 from sqlite_utils.db import NotFoundError, Table, View
 from datetime import datetime
 
-from stmp.formatting.formatter_factory import FormatterFactory
+from formatting.formatter_factory import FormatterFactory
 
 WORK_HOURS_TABLE_NAME = "work_hours"
 NOTES_TABLE_NAME = "notes"
@@ -49,9 +49,8 @@ class Stmp:
         """
         Checks the arguments passed to the "add" command.
 
-        This method checks if at least one of the arguments --start_time, --end_time, --break_duration, or --note is set
-        when the --date argument is set. If --date is not set, it checks if at least one of these arguments is set
-        regardless of the --overwrite argument. If these conditions are not met, it raises an error.
+        This method checks if at least one of the arguments --start_time, --end_time, --break_duration, or --note is set.
+        If this condition is not met, it raises an error.
 
         Args:
             parser (argparse.ArgumentParser): The argument parser object.
@@ -59,20 +58,7 @@ class Stmp:
         Raises:
             argparse.ArgumentError: If the arguments do not meet the required conditions.
         """
-        if self.args.date is not None:
-            if all(
-                arg is None
-                for arg in [
-                    self.args.start_time,
-                    self.args.end_time,
-                    self.args.break_duration,
-                    self.args.note,
-                ]
-            ):
-                parser.error(
-                    "If --date is set, at least one argument of --start_time, --end_time, --break_duration or --note needs to be set."
-                )
-        elif all(
+        if all(
             arg is None
             for arg in [
                 self.args.start_time,
@@ -81,9 +67,8 @@ class Stmp:
                 self.args.note,
             ]
         ):
-            parser.print_help()
             parser.error(
-                "At least one argument other than --overwrite needs to be set."
+                "At least one argument of --start_time, --end_time, --break_duration or --note needs to be set."
             )
 
     def check_rm_parser_arguments(self, parser: argparse.ArgumentParser) -> None:
@@ -106,6 +91,49 @@ class Stmp:
         if self.args.id is not None and self.args.date is not None:
             parser.error("Arguments --id or --date cannot both be set.")
 
+    def check_show_parser_arguments(self, parser: argparse.ArgumentParser) -> None:
+        """
+        Checks the arguments passed to the "show" command.
+
+        This method checks if the arguments --date, --month, --year, or --all are correctly set.
+        If this conditions are not met, it raises an error.
+
+        If --date is set, --month, --year and --all must not be set.
+        if --month is set, --date and --all must not be set.
+        if --year is set, --date and --all must not be set.
+        if --all is set, --date, --month and --year must not be set.
+
+        Args:
+            parser (argparse.ArgumentParser): The argument parser object.
+
+        Raises:
+            argparse.ArgumentError: If the arguments do not meet the required conditions.
+        """
+        if self.args.date is not None:
+            if (
+                self.args.month is not None
+                or self.args.year is not None
+                or self.args.all is not None
+            ):
+                parser.error(
+                    "If --date is set, --month, --year and --all must not be set."
+                )
+        elif self.args.month is not None:
+            if self.args.date is not None or self.args.all is not None:
+                parser.error("If --month is set, --date and --all must not be set.")
+        elif self.args.year is not None:
+            if self.args.date is not None or self.args.all is not None:
+                parser.error("If --year is set, --date and --all must not be set.")
+        elif self.args.all is not None:
+            if (
+                self.args.date is not None
+                or self.args.month is not None
+                or self.args.year is not None
+            ):
+                parser.error(
+                    "If --all is set, --date, --month and --year must not be set."
+                )
+
     def check_dump_parser_arguments(self, parser: argparse.ArgumentParser) -> None:
         """
         Checks the arguments passed to the "dump" command.
@@ -122,15 +150,6 @@ class Stmp:
         if self.args.destination is None:
             parser.print_help()
             parser.error("Argument --destination needs to be set.")
-
-    def set_default_date(self) -> None:
-        """
-        Sets the default date to the current date if no date is provided.
-
-        This method checks if the --date argument is set. If not, it sets the date to the current date.
-        """
-        if self.args.date is None:
-            self.args.date = datetime.now().strftime("%Y-%m-%d")
 
     def update_work_hours(self) -> None:
         """
@@ -325,25 +344,144 @@ class Stmp:
 
     def show_data(self) -> None:
         """
-        Retrieves and prints data from the database.
+        Fetches and displays work hours data based on the specified command line arguments.
 
-        This method retrieves data from the database and prints it to the console.
+        This method fetches work hours data for a specific date, month, or year, or all work hours data,
+        depending on the command line arguments. It also fetches any notes associated with the fetched work hours.
+        The fetched data is then formatted and printed to the console.
+
+        No parameters.
+
+        Returns:
+        None
         """
         work_hours_table: (Table | View) = self.db.table(WORK_HOURS_TABLE_NAME)
         notes_table: (Table | View) = self.db.table(NOTES_TABLE_NAME)
         assert isinstance(work_hours_table, Table)
         assert isinstance(notes_table, Table)
 
-        work_hours: dict = work_hours_table.get(self.args.date)
-        notes_gen: Generator[dict, None, None] = notes_table.rows_where(
-            "date = ?", [self.args.date]
-        )
-        notes: List[dict] = []
-        for note in notes_gen:
-            notes.append(note)
-        work_hours["notes"] = notes
+        work_hours: List[dict] = []
+
+        if self.args.date is not None:
+            work_hours = self.show_date_data(work_hours_table, notes_table)
+
+        elif self.args.month is not None:
+            work_hours = self.show_month_data(
+                work_hours_table, notes_table, self.args.month
+            )
+
+        elif self.args.year is not None:
+            work_hours = self.show_year_data(work_hours_table, notes_table)
+
+        elif self.args.all is not None:
+            work_hours = self.show_all_data(work_hours_table, notes_table)
+
+        else:
+            work_hours = self.show_month_data(
+                work_hours_table, notes_table, datetime.now().strftime("%m")
+            )
+
         formatter = FormatterFactory(self.args.format).getFormatter()
         print(formatter.format(work_hours))
+
+    def show_date_data(self, work_hours_table: Table, notes_table: Table) -> List[dict]:
+        """
+        Fetches work hours for a specific date and appends any notes for that date.
+
+        Parameters:
+        work_hours_table (Table): The table containing work hours data.
+        notes_table (Table): The table containing notes data.
+
+        Returns:
+        List[dict]: A list of dictionaries containing work hours data and notes for the specified date.
+        """
+        work_hours_per_date = work_hours_table.get(self.args.date)
+        return self.append_notes_to_work_hours_data(
+            (x for x in [work_hours_per_date]), notes_table
+        )
+
+    def show_month_data(
+        self, work_hours_table: Table, notes_table: Table, month: str
+    ) -> List[dict]:
+        """
+        Fetches work hours for a specific month and appends any notes for that month.
+
+        Parameters:
+        work_hours_table (Table): The table containing work hours data.
+        notes_table (Table): The table containing notes data.
+        month (str): The month for which to fetch work hours data.
+
+        Returns:
+        List[dict]: A list of dictionaries containing work hours data and notes for the specified month.
+        """
+        # Check if year is set, otherwise use current year
+        year = datetime.now().year
+        if self.args.year is not None:
+            year = self.args.year
+
+        work_hours_per_month_gen: Generator[
+            dict, None, None
+        ] = work_hours_table.rows_where("date LIKE ?", [f"{year}-{month}-%"])
+        return self.append_notes_to_work_hours_data(
+            work_hours_per_month_gen, notes_table
+        )
+
+    def show_year_data(self, work_hours_table: Table, notes_table: Table) -> List[dict]:
+        """
+        Fetches work hours for a specific year and appends any notes for that year.
+
+        Parameters:
+        work_hours_table (Table): The table containing work hours data.
+        notes_table (Table): The table containing notes data.
+
+        Returns:
+        List[dict]: A list of dictionaries containing work hours data and notes for the specified year.
+        """
+        work_hours_per_year_gen: Generator[
+            dict, None, None
+        ] = work_hours_table.rows_where("date LIKE ?", [f"{self.args.year}-%"])
+        return self.append_notes_to_work_hours_data(
+            work_hours_per_year_gen, notes_table
+        )
+
+    def show_all_data(self, work_hours_table: Table, notes_table: Table) -> List[dict]:
+        """
+        Fetches all work hours and appends any notes.
+
+        Parameters:
+        work_hours_table (Table): The table containing work hours data.
+        notes_table (Table): The table containing notes data.
+
+        Returns:
+        List[dict]: A list of dictionaries containing all work hours data and notes.
+        """
+        work_hours_gen: Generator[dict, None, None] = work_hours_table.rows
+        return self.append_notes_to_work_hours_data(work_hours_gen, notes_table)
+
+    def append_notes_to_work_hours_data(
+        self, work_hours_gen: Generator, notes_table: Table
+    ) -> List[dict]:
+        """
+        Appends notes to work hours data.
+
+        Parameters:
+        work_hours_gen (Generator): A generator yielding work hours data.
+        notes_table (Table): The table containing notes data.
+
+        Returns:
+        List[dict]: A list of dictionaries containing work hours data and notes.
+        """
+        work_hours: List[dict] = []
+        for work_hour in work_hours_gen:
+            notes_gen: Generator[dict, None, None] = notes_table.rows_where(
+                "date = ?", [work_hour["date"]]
+            )
+            notes_per_day: List[dict] = []
+            for note in notes_gen:
+                notes_per_day.append(note)
+            work_hour["notes"] = notes_per_day
+            work_hours.append(work_hour)
+        return work_hours
 
     def dump_data(self) -> None:
         """
@@ -409,7 +547,6 @@ class Stmp:
             parser.print_help()
         if self.args.command == "add":
             self.check_add_parser_arguments(parser)
-            self.set_default_date()
             self.update_work_hours()
             if self.args.note is not None:
                 self.update_notes()
@@ -420,25 +557,28 @@ class Stmp:
             elif self.args.date:
                 self.remove_work_hours()
         elif self.args.command == "show":
-            self.set_default_date()
+            self.check_show_parser_arguments(parser)
             self.show_data()
         elif self.args.command == "dump":
             self.dump_data()
         elif self.args.command == "check":
             self.check_data()
 
+
 def create_dir_if_not_exists() -> str:
-        """
-        Creates the .stmp directory in the home directory if it doesn't exist.
-        
-        Returns the path to the .stmp directory.
-        """
-        stmp_dir = os.path.join(os.path.expanduser("~"), ".stmp")
-        os.makedirs(stmp_dir, exist_ok=True)
-        return stmp_dir
+    """
+    Creates the .stmp directory in the home directory if it doesn't exist.
+
+    Returns the path to the .stmp directory.
+    """
+    stmp_dir = os.path.join(os.path.expanduser("~"), ".stmp")
+    os.makedirs(stmp_dir, exist_ok=True)
+    return stmp_dir
+
 
 def main():
-     # Parse command-line arguments
+    now = datetime.now()
+    # Parse command-line arguments
     parser = argparse.ArgumentParser(
         description="Record working hours.",
         epilog="""
@@ -458,10 +598,12 @@ To remove a record:
     -i, --id: ID of the note to remove.
     -d, --date: Date of the record to remove.
 
-To show records for a date:
-    stmp show -d <date> -f <format>
-    -d, --date: Date for which to show records. If not specified, records for the current date are shown.
-    -f, --format: Format to show records. Default is "table".
+To show records for a date, month, year, or all records. Shows records of current month as default:
+    stmp show -d <date> -m <month> -y <year> -a
+    -d, --date: Date in YYYY-MM-DD format for which to show records.
+    -m, --month: Month in MM format for which to show records.
+    -y, --year: Year in YYYY format for which to show records.
+    -a, --all: Show all records.
     
 To dump all data:
     stmp dump -d <destination>
@@ -477,7 +619,13 @@ To check the database entries for completeness:
 
     # add parser
     add_parser = subparsers.add_parser("add", help="Add times and notes for the day")
-    add_parser.add_argument("--date", "-d", type=str, help="Date in YYYY-MM-DD format")
+    add_parser.add_argument(
+        "--date",
+        "-d",
+        type=str,
+        default=now.strftime("%Y-%m-%d"),
+        help="Date in YYYY-MM-DD format",
+    )
     add_parser.add_argument(
         "--start_time", "-s", type=str, help="Start time in HH:MM format"
     )
@@ -498,15 +646,40 @@ To check the database entries for completeness:
 
     # rm parser
     rm_parser = subparsers.add_parser("rm", help="Remove a record")
-    rm_parser.add_argument("--id", "-i", type=int, help="ID of the note to remove")
-    rm_parser.add_argument(
+    rm_either = rm_parser.add_mutually_exclusive_group()
+    rm_either.add_argument("--id", "-i", type=int, help="ID of the note to remove")
+    rm_either.add_argument(
         "--date", "-d", type=str, help="Date of the record to remove"
     )
 
     # show parser
     show_parser = subparsers.add_parser("show", help="Show hours and notes")
     show_parser.add_argument(
-        "--date", "-d", type=str, help="Date for which to show records"
+        "--date",
+        "-d",
+        type=str,
+        nargs="?",
+        const=now.strftime("%Y-%m-%d"),
+        help="Date in YYYY-MM-DD format for which to show records",
+    )
+    show_parser.add_argument(
+        "--month",
+        "-m",
+        type=str,
+        nargs="?",
+        const=now.strftime("%m"),
+        help="Month in MM format for which to show records",
+    )
+    show_parser.add_argument(
+        "--year",
+        "-y",
+        type=str,
+        nargs="?",
+        const=now.strftime("%Y"),
+        help="Year in YYYY format for which to show records",
+    )
+    show_parser.add_argument(
+        "--all", "-a", type=bool, nargs="?", const=True, help="Show all records"
     )
     show_parser.add_argument(
         "--format", "-f", type=str, help="Format to show", default="table"
@@ -522,7 +695,6 @@ To check the database entries for completeness:
     )
 
     args = parser.parse_args()
-    
 
     # Initialize and execute stmp
     stmp_dir = create_dir_if_not_exists()
@@ -535,5 +707,6 @@ To check the database entries for completeness:
     finally:
         db.close()
 
-if __name__ == "__main__":  
+
+if __name__ == "__main__":
     main()
