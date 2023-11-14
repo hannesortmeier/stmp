@@ -33,7 +33,7 @@ To use stmp, you can use the following commands:
 ```bash
 stmp add --date YYYY-MM-DD --start_time HH:MM --end_time HH:MM --break_duration MM --note "Your note"
 ```
-You can omit almost all arguments:
+You can omit almost all arguments and stmp uses the current date as a default:
 ```bash
 stmp add --start_time HH:MM
 ```
