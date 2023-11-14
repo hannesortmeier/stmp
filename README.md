@@ -81,11 +81,13 @@ To remove a record:
     -i, --id: ID of the note to remove.
     -d, --date: Date of the record to remove.
 
-To show records for a date:
-    stmp show -d <date> -f <format>
-    -d, --date: Date for which to show records. If not specified, records for the current date are shown.
-    -f, --format: Format to show records. Default is "table".
-
+To show records for a date, month, year, or all records. Shows records of current month as default:
+    stmp show -d <date> -m <month> -y <year> -a
+    -d, --date: Date in YYYY-MM-DD format for which to show records.
+    -m, --month: Month in MM format for which to show records.
+    -y, --year: Year in YYYY format for which to show records.
+    -a, --all: Show all records.
+    
 To dump all data:
     stmp dump -d <destination>
     -d, --destination: Destination folder for the dumped data.
