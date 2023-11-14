@@ -38,11 +38,20 @@ You can omit almost all arguments and stmp uses the current date as a default:
 stmp add --start_time HH:MM
 ```
 
-- To view records for a day:
+- To view records for certain date:
 ```bash
 stmp show --date YYYY-MM-DD --format json
 ```
-If you want to view the records for the current day, you can omit the --date argument:
+
+- To view records for a certain month:
+```bash
+stmp show --month MM --year 2023
+```
+You can also omit the year and stmp will set the current year as default:
+```bash
+stmp show -m MM --format table
+```
+If you want to view the records for the current month, you can omit all arguments:
 ```bash
 stmp show
 ```
@@ -87,6 +96,7 @@ To show records for a date, month, year, or all records. Shows records of curren
     -m, --month: Month in MM format for which to show records.
     -y, --year: Year in YYYY format for which to show records.
     -a, --all: Show all records.
+    -f, --format: Format to show. Default format is table.
     
 To dump all data:
     stmp dump -d <destination>
