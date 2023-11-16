@@ -631,8 +631,8 @@ This tool allows you to record your working hours and breaks, and manage notes.
 To add a record:
     stmp add -d <date> -s <start_time> -e <end_time> -b <break_duration> -n <note> -o <overwrite>
     -d, --date: Date in YYYY-MM-DD format. If not specified, the current date is used.
-    -s, --start_time: Start time in HH:MM format. If not specified, the existing value is used.
-    -e, --end_time: End time in HH:MM format. If not specified, the existing value is used.
+    -s, --start_time: Start time in HH:MM format. If option is set but no value is given, the current time is used.
+    -e, --end_time: End time in HH:MM format. If option is set but no value is given, the current time is used.
     -b, --break_duration: Break duration in minutes. If not specified, the existing value is used.
     -n, --note: Add a note for the day. If not specified, no note is added.
     -o, --overwrite: Boolean to indicate whether to overwrite existing data. Default is True.
@@ -673,10 +673,10 @@ To check the database entries for completeness:
         help="Date in YYYY-MM-DD format",
     )
     add_parser.add_argument(
-        "--start_time", "-s", type=str, help="Start time in HH:MM format"
+        "--start_time", "-s", type=str, nargs="?", const=now.strftime("%H:%M"), help="Start time in HH:MM format"
     )
     add_parser.add_argument(
-        "--end_time", "-e", type=str, help="End time in HH:MM format"
+        "--end_time", "-e", type=str, nargs="?", const=now.strftime("%H:%M"), help="End time in HH:MM format"
     )
     add_parser.add_argument(
         "--break_duration", "-b", type=int, help="Break duration in minutes"
