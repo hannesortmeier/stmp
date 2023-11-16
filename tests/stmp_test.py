@@ -6,7 +6,7 @@ from sqlite_utils import Database
 from io import StringIO
 from unittest.mock import ANY, patch, mock_open
 
-from stmp.stmp import Stmp
+from stmp import Stmp
 
 
 class TestStmp(unittest.TestCase):

@@ -5,7 +5,7 @@ from sqlite_utils import Database
 from sqlite_utils.db import NotFoundError, Table, View
 from datetime import datetime
 
-from stmp.formatter_factory import FormatterFactory
+from formatter_factory import FormatterFactory
 
 WORK_HOURS_TABLE_NAME = "work_hours"
 NOTES_TABLE_NAME = "notes"
@@ -421,7 +421,7 @@ class Stmp:
 
         work_hours_per_month_gen: Generator[
             dict, None, None
-        ] = work_hours_table.rows_where("date LIKE ?", [f"{year}-{month}-%"])
+        ] = work_hours_table.rows_where("date LIKE ?", [f"{year}-{month}-%"], order_by="date")
         return self.append_notes_to_work_hours_data(
             work_hours_per_month_gen, notes_table
         )
@@ -439,7 +439,7 @@ class Stmp:
         """
         work_hours_per_year_gen: Generator[
             dict, None, None
-        ] = work_hours_table.rows_where("date LIKE ?", [f"{self.args.year}-%"])
+        ] = work_hours_table.rows_where("date LIKE ?", [f"{self.args.year}-%"], order_by="date")
         return self.append_notes_to_work_hours_data(
             work_hours_per_year_gen, notes_table
         )
@@ -455,7 +455,7 @@ class Stmp:
         Returns:
         List[dict]: A list of dictionaries containing all work hours data and notes.
         """
-        work_hours_gen: Generator[dict, None, None] = work_hours_table.rows
+        work_hours_gen: Generator[dict, None, None] = work_hours_table.rows_where(order_by="date")
         return self.append_notes_to_work_hours_data(work_hours_gen, notes_table)
 
     def append_notes_to_work_hours_data(
@@ -475,7 +475,7 @@ class Stmp:
         for work_hour in work_hours_gen:
             notes_gen: Generator[dict, None, None] = notes_table.rows_where(
                 "date = ?", [work_hour["date"]]
-            )
+            , order_by="id")
             notes_per_day: List[dict] = []
             for note in notes_gen:
                 notes_per_day.append(note)
