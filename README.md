@@ -96,6 +96,7 @@ To show records for a date, month, year, or all records. Shows records of curren
     -m, --month: Month in MM format for which to show records.
     -y, --year: Year in YYYY format for which to show records.
     -a, --all: Show all records.
+    -n, --notes: Show notes in the output.
     -f, --format: Format to show. Default format is table.
     
 To dump all data:

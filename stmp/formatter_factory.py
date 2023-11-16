@@ -4,7 +4,7 @@ from tabulate import tabulate
 from abc import ABC, abstractmethod
 
 
-class stmpFormatter(ABC):
+class StmpFormatter(ABC):
     @abstractmethod
     def format(self, work_hours: List[dict]) -> str:
         pass
@@ -22,21 +22,21 @@ class FormatterFactory:
             Returns the formatter object created by the factory.
     """
 
-    def __init__(self, format):
-        if "json" in format.lower():
+    def __init__(self, format_string):
+        if "json" in format_string.lower():
             self.formatter = JSONFormatter()
-        elif "table" in format.lower():
+        elif "table" in format_string.lower():
             self.formatter = TABLEFormatter()
-        elif "markdown" in format.lower():
+        elif "markdown" in format_string.lower():
             self.formatter = MARKDOWNFormatter()
         else:
-            raise Exception("Format not supported: " + format)
+            raise Exception("Format not supported: " + format_string)
 
-    def getFormatter(self):
+    def get_formatter(self):
         return self.formatter
 
 
-class JSONFormatter(stmpFormatter):
+class JSONFormatter(StmpFormatter):
     """
     The JSONFormatter class implements the Formatter interface to provide JSON formatting.
 
@@ -49,7 +49,7 @@ class JSONFormatter(stmpFormatter):
         return json.dumps(work_hours, indent=4)
 
 
-class MARKDOWNFormatter(stmpFormatter):
+class MARKDOWNFormatter(StmpFormatter):
     """
     The MARKDOWNFormatter class implements the Formatter interface to provide Markdown formatting.
 
@@ -70,13 +70,14 @@ class MARKDOWNFormatter(stmpFormatter):
                 + record["end_time"]
                 + "\n\n"
             )
-            for note in record["notes"]:
-                md += "- " + note["note"] + "\n"
-            md += "\n\n"
+            if "notes" in record.keys():
+                for note in record["notes"]:
+                    md += "- " + note["note"] + "\n"
+                md += "\n\n"
         return md
 
 
-class TABLEFormatter(stmpFormatter):
+class TABLEFormatter(StmpFormatter):
     """
     The TABLEFormatter class implements the Formatter interface to provide table formatting.
 
@@ -87,16 +88,22 @@ class TABLEFormatter(stmpFormatter):
 
     def format(self, work_hours: List[dict]) -> str:
         table = []
+        # Check if the entries of work_hours contain notes.
         for record in work_hours:
             copy = record.copy()
-            copy.pop("notes")
-            if not record["notes"]:
-                copy["note_id"] = None
-                copy["note"] = None
-                table.append(copy)
+            # Include notes in the table if they exist.
+            if "notes" in work_hours[0].keys():
+                copy.pop("notes")
+                if not record["notes"]:
+                    copy["note_id"] = None
+                    copy["note"] = None
+                    table.append(copy)
+                else:
+                    for note in record["notes"]:
+                        copy["note_id"] = note["id"]
+                        copy["note"] = note["note"]
+                        table.append(copy.copy())
+            # Otherwise, just include the work hours.
             else:
-                for note in record["notes"]:
-                    copy["note_id"] = note["id"]
-                    copy["note"] = note["note"]
-                    table.append(copy.copy())
+                table.append(copy)
         return tabulate(table, headers="keys", tablefmt="github")

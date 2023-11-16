@@ -224,6 +224,36 @@ class Stmp:
             }
         )
 
+        def overwrite_upsert_work_hours(
+            date: str,
+            start_time: Optional[str],
+            end_time: Optional[str],
+            break_duration: Optional[int],
+            table: Table,
+            row: dict,
+        ) -> None:
+            """
+            Overwrites an existing record of work hours in the database.
+
+            This method updates the record in the work_hours table in the database with the specified date. It updates the
+            start time, end time, and break duration with the specified values. If no start time, end time, or break duration
+            is specified, it leaves the existing values unchanged.
+            """
+            start_time = start_time if start_time is not None else row["start_time"]
+            end_time = end_time if end_time is not None else row["end_time"]
+            break_duration = (
+                break_duration if break_duration is not None else row["break_duration"]
+            )
+            table.upsert(
+                {
+                    "date": date,
+                    "start_time": start_time,
+                    "end_time": end_time,
+                    "break_duration": break_duration,
+                },
+                pk="date",  # type: ignore
+            )
+
     def overwrite_upsert_work_hours(
         self,
         date: str,
@@ -381,30 +411,32 @@ class Stmp:
                 work_hours_table, notes_table, datetime.now().strftime("%m")
             )
 
-        formatter = FormatterFactory(self.args.format).getFormatter()
+        formatter = FormatterFactory(self.args.format).get_formatter()
         print(formatter.format(work_hours))
 
     def show_date_data(self, work_hours_table: Table, notes_table: Table) -> List[dict]:
         """
-        Fetches work hours for a specific date and appends any notes for that date.
+        Fetches work hours for a specific date and appends any notes for that date if the --notes flag is set.
 
         Parameters:
         work_hours_table (Table): The table containing work hours data.
         notes_table (Table): The table containing notes data.
 
         Returns:
-        List[dict]: A list of dictionaries containing work hours data and notes for the specified date.
+        List[dict]: A list of dictionaries containing work hours data and notes for the specified date if the --notes flag is set.
         """
         work_hours_per_date = work_hours_table.get(self.args.date)
-        return self.append_notes_to_work_hours_data(
-            (x for x in [work_hours_per_date]), notes_table
-        )
+        if self.args.notes:
+            return self.append_notes_to_work_hours_data(
+                (x for x in [work_hours_per_date]), notes_table
+            )
+        return [work_hours_per_date]
 
     def show_month_data(
         self, work_hours_table: Table, notes_table: Table, month: str
     ) -> List[dict]:
         """
-        Fetches work hours for a specific month and appends any notes for that month.
+        Fetches work hours for a specific month and appends any notes for that month if the --notes flag is set.
 
         Parameters:
         work_hours_table (Table): The table containing work hours data.
@@ -412,7 +444,7 @@ class Stmp:
         month (str): The month for which to fetch work hours data.
 
         Returns:
-        List[dict]: A list of dictionaries containing work hours data and notes for the specified month.
+        List[dict]: A list of dictionaries containing work hours data and notes for the specified month if the --notes flag is set.
         """
         # Check if year is set, otherwise use current year
         year = datetime.now().year
@@ -421,42 +453,54 @@ class Stmp:
 
         work_hours_per_month_gen: Generator[
             dict, None, None
-        ] = work_hours_table.rows_where("date LIKE ?", [f"{year}-{month}-%"], order_by="date")
-        return self.append_notes_to_work_hours_data(
-            work_hours_per_month_gen, notes_table
+        ] = work_hours_table.rows_where(
+            "date LIKE ?", [f"{year}-{month}-%"], order_by="date"
         )
+        if self.args.notes:
+            return self.append_notes_to_work_hours_data(
+                work_hours_per_month_gen, notes_table
+            )
+        return [entry for i, entry in enumerate(work_hours_per_month_gen)]
 
     def show_year_data(self, work_hours_table: Table, notes_table: Table) -> List[dict]:
         """
-        Fetches work hours for a specific year and appends any notes for that year.
+        Fetches work hours for a specific year and appends any notes for that year if the --notes flag is set.
 
         Parameters:
         work_hours_table (Table): The table containing work hours data.
         notes_table (Table): The table containing notes data.
 
         Returns:
-        List[dict]: A list of dictionaries containing work hours data and notes for the specified year.
+        List[dict]: A list of dictionaries containing work hours data and notes for the specified year if the --notes flag is set.
         """
         work_hours_per_year_gen: Generator[
             dict, None, None
-        ] = work_hours_table.rows_where("date LIKE ?", [f"{self.args.year}-%"], order_by="date")
-        return self.append_notes_to_work_hours_data(
-            work_hours_per_year_gen, notes_table
+        ] = work_hours_table.rows_where(
+            "date LIKE ?", [f"{self.args.year}-%"], order_by="date"
         )
+        if self.args.notes:
+            return self.append_notes_to_work_hours_data(
+                work_hours_per_year_gen, notes_table
+            )
+        return [entry for i, entry in enumerate(work_hours_per_year_gen)]
 
     def show_all_data(self, work_hours_table: Table, notes_table: Table) -> List[dict]:
         """
-        Fetches all work hours and appends any notes.
+        Fetches all work hours and appends any notes if the --notes flag is set.
 
         Parameters:
-        work_hours_table (Table): The table containing work hours data.
+        work_hours_table (Table): The table containing work hours' data.
         notes_table (Table): The table containing notes data.
 
         Returns:
-        List[dict]: A list of dictionaries containing all work hours data and notes.
+        List[dict]: A list of dictionaries containing all work hours data and notes if the --notes flag is set.
         """
-        work_hours_gen: Generator[dict, None, None] = work_hours_table.rows_where(order_by="date")
-        return self.append_notes_to_work_hours_data(work_hours_gen, notes_table)
+        work_hours_gen: Generator[dict, None, None] = work_hours_table.rows_where(
+            order_by="date"
+        )
+        if self.args.notes:
+            return self.append_notes_to_work_hours_data(work_hours_gen, notes_table)
+        return [entry for i, entry in enumerate(work_hours_gen)]
 
     def append_notes_to_work_hours_data(
         self, work_hours_gen: Generator, notes_table: Table
@@ -474,8 +518,8 @@ class Stmp:
         work_hours: List[dict] = []
         for work_hour in work_hours_gen:
             notes_gen: Generator[dict, None, None] = notes_table.rows_where(
-                "date = ?", [work_hour["date"]]
-            , order_by="id")
+                "date = ?", [work_hour["date"]], order_by="id"
+            )
             notes_per_day: List[dict] = []
             for note in notes_gen:
                 notes_per_day.append(note)
@@ -604,6 +648,7 @@ To show records for a date, month, year, or all records. Shows records of curren
     -m, --month: Month in MM format for which to show records.
     -y, --year: Year in YYYY format for which to show records.
     -a, --all: Show all records.
+    -n, --notes: Show notes in the output.
     -f, --format: Format to show. Default format is table.
     
 To dump all data:
@@ -681,6 +726,14 @@ To check the database entries for completeness:
     )
     show_parser.add_argument(
         "--all", "-a", type=bool, nargs="?", const=True, help="Show all records"
+    )
+    show_parser.add_argument(
+        "--notes",
+        "-n",
+        type=bool,
+        nargs="?",
+        const=True,
+        help="Show notes in the output",
     )
     show_parser.add_argument(
         "--format", "-f", type=str, help="Format to show", default="table"

@@ -6,7 +6,7 @@ from sqlite_utils import Database
 from io import StringIO
 from unittest.mock import ANY, patch, mock_open
 
-from stmp import Stmp
+from stmp.stmp import Stmp
 
 
 class TestStmp(unittest.TestCase):
@@ -155,8 +155,10 @@ class TestStmp(unittest.TestCase):
             stmp, "add", "2020-02-01", "08:00", "16:00", 30, "Test note", True
         )
 
-        # show json
-        args = argparse.Namespace(command="show", date="2020-02-01", format="json")
+        # show json including notes
+        args = argparse.Namespace(
+            command="show", date="2020-02-01", notes=True, format="json"
+        )
         stmp.args = args
 
         stmp.show_data()
@@ -180,6 +182,29 @@ class TestStmp(unittest.TestCase):
 """,
         )
 
+        # show json excluding notes
+        mock_stdout.truncate(0)
+        mock_stdout.seek(0)
+
+        args = argparse.Namespace(
+            command="show", date="2020-02-01", notes=None, format="json"
+        )
+        stmp.args = args
+
+        stmp.show_data()
+        self.assertEqual(
+            mock_stdout.getvalue(),
+            """[
+    {
+        "date": "2020-02-01",
+        "start_time": "08:00",
+        "end_time": "16:00",
+        "break_duration": 30.0
+    }
+]
+""",
+        )
+
         self.add_record_to_database(
             stmp, "add", "2020-02-02", "07:00", "15:00", 50, "Test note 2", True
         )
@@ -187,12 +212,18 @@ class TestStmp(unittest.TestCase):
             stmp, "add", "2020-03-02", "06:00", "14:00", None, "Test note 3", True
         )
 
-        # show table
+        # show table including notes
         mock_stdout.truncate(0)
         mock_stdout.seek(0)
 
         args = argparse.Namespace(
-            command="show", date=None, month="02", year="2020", all=None, format="table"
+            command="show",
+            date=None,
+            month="02",
+            year="2020",
+            all=None,
+            notes=True,
+            format="table",
         )
         stmp.args = args
 
@@ -216,6 +247,7 @@ class TestStmp(unittest.TestCase):
             month=None,
             year="2020",
             all=None,
+            notes=True,
             format="markdown",
         )
         stmp.args = args
@@ -242,12 +274,18 @@ class TestStmp(unittest.TestCase):
 """,
         )
 
-        # show all
+        # show all including notes
         mock_stdout.truncate(0)
         mock_stdout.seek(0)
 
         args = argparse.Namespace(
-            command="show", date=None, month=None, year=None, all=True, format="table"
+            command="show",
+            date=None,
+            month=None,
+            year=None,
+            all=True,
+            notes=True,
+            format="table",
         )
         stmp.args = args
 
@@ -259,6 +297,32 @@ class TestStmp(unittest.TestCase):
 | 2020-02-01 | 08:00        | 16:00      |               30 |         1 | Test note   |
 | 2020-02-02 | 07:00        | 15:00      |               50 |         2 | Test note 2 |
 | 2020-03-02 | 06:00        | 14:00      |                  |         3 | Test note 3 |
+""",
+        )
+
+        # show all excluding notes
+        mock_stdout.truncate(0)
+        mock_stdout.seek(0)
+
+        args = argparse.Namespace(
+            command="show",
+            date=None,
+            month=None,
+            year=None,
+            all=True,
+            notes=None,
+            format="table",
+        )
+        stmp.args = args
+
+        stmp.show_data()
+        self.assertEqual(
+            mock_stdout.getvalue(),
+            """| date       | start_time   | end_time   |   break_duration |
+|------------|--------------|------------|------------------|
+| 2020-02-01 | 08:00        | 16:00      |               30 |
+| 2020-02-02 | 07:00        | 15:00      |               50 |
+| 2020-03-02 | 06:00        | 14:00      |                  |
 """,
         )
 
