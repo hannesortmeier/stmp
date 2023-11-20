@@ -6,7 +6,7 @@ from datetime import datetime
 from .stmp import Stmp
 
 
-def check_datetime_format(_input: str, _format: str, length: int) -> bool:
+def _check_datetime_format(_input: str, _format: str, length: int) -> bool:
     """
     Checks whether the provided input string is in the provided format and has the provided length.
 
@@ -17,6 +17,15 @@ def check_datetime_format(_input: str, _format: str, length: int) -> bool:
     except ValueError:
         return False
     return len(_input) == length
+
+
+def _check_argparse_input(_input: str, _format: str, length: int) -> str:
+    if _check_datetime_format(_input, _format, length):
+        return _input
+    else:
+        raise argparse.ArgumentTypeError(
+            f"Value {_input} not valid. Please use format {_format}."
+        )
 
 
 def create_dir_if_not_exists() -> str:
@@ -78,14 +87,14 @@ To check the database entries for completeness:
     add_parser.add_argument(
         "--date",
         "-d",
-        type=str,
+        type=lambda x: _check_argparse_input(x, "%Y-%m-%d", 10),
         default=now.strftime("%Y-%m-%d"),
         help="Date in YYYY-MM-DD format",
     )
     add_parser.add_argument(
         "--start_time",
         "-s",
-        type=str,
+        type=lambda x: _check_argparse_input(x, "%H:%M", 5),
         nargs="?",
         const=now.strftime("%H:%M"),
         help="Start time in HH:MM format",
@@ -93,7 +102,7 @@ To check the database entries for completeness:
     add_parser.add_argument(
         "--end_time",
         "-e",
-        type=str,
+        type=lambda x: _check_argparse_input(x, "%H:%M", 5),
         nargs="?",
         const=now.strftime("%H:%M"),
         help="End time in HH:MM format",
@@ -115,7 +124,7 @@ To check the database entries for completeness:
     rm_either = rm_parser.add_mutually_exclusive_group()
     rm_either.add_argument("--id", "-i", type=int, help="ID of the note to remove")
     rm_either.add_argument(
-        "--date", "-d", type=str, help="Date of the record to remove"
+        "--date", "-d", type=lambda x: _check_argparse_input(x, "%Y-%m-%d", 10), help="Date of the record to remove"
     )
 
     # show parser
@@ -123,7 +132,7 @@ To check the database entries for completeness:
     show_parser.add_argument(
         "--date",
         "-d",
-        type=str,
+        type=lambda x: _check_argparse_input(x, "%Y-%m-%d", 10),
         nargs="?",
         const=now.strftime("%Y-%m-%d"),
         help="Date in YYYY-MM-DD format for which to show records",
@@ -131,7 +140,7 @@ To check the database entries for completeness:
     show_parser.add_argument(
         "--month",
         "-m",
-        type=str,
+        type=lambda x: _check_argparse_input(x, "%m", 2),
         nargs="?",
         const=now.strftime("%m"),
         help="Month in MM format for which to show records",
@@ -139,7 +148,7 @@ To check the database entries for completeness:
     show_parser.add_argument(
         "--year",
         "-y",
-        type=str,
+        type=lambda x: _check_argparse_input(x, "%Y", 4),
         nargs="?",
         const=now.strftime("%Y"),
         help="Year in YYYY format for which to show records",
