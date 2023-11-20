@@ -110,7 +110,7 @@ class TestStmp(unittest.TestCase):
         stmp.args = args
         stmp.remove_note()
 
-        cursor: Cursor = stmp.db.execute(
+        cursor: Cursor = stmp.db.execute(  # type: ignore
             "SELECT * FROM notes WHERE date = '2020-02-01'"
         )
         self.assertIsNone(cursor.fetchone())
@@ -129,7 +129,7 @@ class TestStmp(unittest.TestCase):
 
         # add work hours
         stmp.update_work_hours()
-        cursor: Cursor = stmp.db.execute(
+        cursor: Cursor = stmp.db.execute(  # type: ignore
             "SELECT * FROM work_hours WHERE date = '2020-02-01'"
         )
         date, start_time, end_time, break_duration = cursor.fetchone()

@@ -9,6 +9,7 @@ readme = "README.md"
 python = "^3.11"
 sqlite-utils = "^3.35.2"
 tabulate = "^0.9.0"
+types-tabulate = "^0.9.0.3"
 
 
 [build-system]
@@ -16,4 +17,4 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-stmp = 'stmp.stmp:main'
+stmp = 'stmp.main:main'

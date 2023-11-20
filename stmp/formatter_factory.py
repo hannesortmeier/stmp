@@ -22,7 +22,9 @@ class FormatterFactory:
             Returns the formatter object created by the factory.
     """
 
-    def __init__(self, format_string):
+    formatter: StmpFormatter
+
+    def __init__(self, format_string) -> None:
         if "json" in format_string.lower():
             self.formatter = JSONFormatter()
         elif "table" in format_string.lower():
@@ -32,7 +34,7 @@ class FormatterFactory:
         else:
             raise Exception("Format not supported: " + format_string)
 
-    def get_formatter(self):
+    def get_formatter(self) -> StmpFormatter:
         return self.formatter
 
 
