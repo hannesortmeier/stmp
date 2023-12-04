@@ -18,9 +18,7 @@ Configure your machine in such a way, that start and end time are automatically 
 
 ## Installation
 
-To install stmp, follow these steps:
-
-1. Clone the repository: 
+You can simply install stmp from pip:
 ```bash
 pip install stmp
 ```
