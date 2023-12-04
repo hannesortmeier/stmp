@@ -30,7 +30,7 @@ class TestStmp(unittest.TestCase):
             date="2020-01-01",
             start_time="08:00",
             end_time="16:00",
-            break_duration=30,
+            break_minutes=30,
             note="Test note",
             overwrite=True,
         )
@@ -50,11 +50,11 @@ class TestStmp(unittest.TestCase):
         cursor: Cursor = stmp.db.execute(
             "SELECT * FROM work_hours WHERE date = '2020-01-01'"
         )
-        date, start_time, end_time, break_duration = cursor.fetchone()
+        date, start_time, end_time, break_minutes = cursor.fetchone()
         self.assertEqual(date, "2020-01-01")
         self.assertEqual(start_time, "08:00")
         self.assertEqual(end_time, "16:00")
-        self.assertEqual(break_duration, 30)
+        self.assertEqual(break_minutes, 30)
 
         # test overwrite_upsert_work_hours
         args = argparse.Namespace(
@@ -62,7 +62,7 @@ class TestStmp(unittest.TestCase):
             date="2020-01-01",
             start_time="07:00",
             end_time="16:00",
-            break_duration=30,
+            break_minutes=30,
             note="Test note",
             overwrite=True,
         )
@@ -79,7 +79,7 @@ class TestStmp(unittest.TestCase):
             date="2020-01-01",
             start_time="12:00",
             end_time=None,
-            break_duration=None,
+            break_minutes=None,
             note=None,
             overwrite=False,
         )
@@ -121,7 +121,7 @@ class TestStmp(unittest.TestCase):
             date="2020-02-01",
             start_time="08:00",
             end_time="16:00",
-            break_duration=30,
+            break_minutes=30,
             note="Test note",
             overwrite=True,
         )
@@ -132,11 +132,11 @@ class TestStmp(unittest.TestCase):
         cursor: Cursor = stmp.db.execute(  # type: ignore
             "SELECT * FROM work_hours WHERE date = '2020-02-01'"
         )
-        date, start_time, end_time, break_duration = cursor.fetchone()
+        date, start_time, end_time, break_minutes = cursor.fetchone()
         self.assertEqual(date, "2020-02-01")
         self.assertEqual(start_time, "08:00")
         self.assertEqual(end_time, "16:00")
-        self.assertEqual(break_duration, 30)
+        self.assertEqual(break_minutes, 30)
 
         # test remove_work_hours
         args = argparse.Namespace(command="rm", date="2020-02-01")
@@ -169,10 +169,10 @@ class TestStmp(unittest.TestCase):
         "date": "2020-02-01",
         "start_time": "08:00",
         "end_time": "16:00",
-        "break_duration": 30.0,
-        "working_hours": 7.5,
+        "break_minutes": 30.0,
+        "work_hours": 7.5,
         "overtime_hours": -0.3,
-        "cumulative_overtime_hours": -0.3,
+        "cum_overtime_hours": -0.3,
         "notes": [
             {
                 "id": 1,
@@ -202,10 +202,10 @@ class TestStmp(unittest.TestCase):
         "date": "2020-02-01",
         "start_time": "08:00",
         "end_time": "16:00",
-        "break_duration": 30.0,
-        "working_hours": 7.5,
+        "break_minutes": 30.0,
+        "work_hours": 7.5,
         "overtime_hours": -0.3,
-        "cumulative_overtime_hours": -0.3
+        "cum_overtime_hours": -0.3
     }
 ]
 """,
@@ -236,10 +236,10 @@ class TestStmp(unittest.TestCase):
         stmp.show_data()
         self.assertEqual(
             mock_stdout.getvalue(),
-            """| date       | start_time   | end_time   |   break_duration |   working_hours |   overtime_hours |   cumulative_overtime_hours |   note_id | note        |
-|------------|--------------|------------|------------------|-----------------|------------------|-----------------------------|-----------|-------------|
-| 2020-02-01 | 08:00        | 16:00      |               30 |            7.5  |            -0.3  |                       -0.3  |         1 | Test note   |
-| 2020-02-02 | 07:00        | 15:00      |               50 |            7.17 |            -0.63 |                       -0.93 |         2 | Test note 2 |
+            """| date       | start_time   | end_time   |   break_minutes |   work_hours |   overtime_hours |   cum_overtime_hours |   note_id | note        |
+|------------|--------------|------------|-----------------|--------------|------------------|----------------------|-----------|-------------|
+| 2020-02-01 | 08:00        | 16:00      |              30 |         7.5  |            -0.3  |                -0.3  |         1 | Test note   |
+| 2020-02-02 | 07:00        | 15:00      |              50 |         7.17 |            -0.63 |                -0.93 |         2 | Test note 2 |
 """,
         )
 
@@ -298,11 +298,11 @@ class TestStmp(unittest.TestCase):
         stmp.show_data()
         self.assertEqual(
             mock_stdout.getvalue(),
-            """| date       | start_time   | end_time   |   break_duration |   working_hours |   overtime_hours |   cumulative_overtime_hours |   note_id | note        |
-|------------|--------------|------------|------------------|-----------------|------------------|-----------------------------|-----------|-------------|
-| 2020-02-01 | 08:00        | 16:00      |               30 |            7.5  |            -0.3  |                       -0.3  |         1 | Test note   |
-| 2020-02-02 | 07:00        | 15:00      |               50 |            7.17 |            -0.63 |                       -0.93 |         2 | Test note 2 |
-| 2020-03-02 | 06:00        | 14:00      |                  |                 |                  |                       -0.93 |         3 | Test note 3 |
+            """| date       | start_time   | end_time   |   break_minutes |   work_hours |   overtime_hours |   cum_overtime_hours |   note_id | note        |
+|------------|--------------|------------|-----------------|--------------|------------------|----------------------|-----------|-------------|
+| 2020-02-01 | 08:00        | 16:00      |              30 |         7.5  |            -0.3  |                -0.3  |         1 | Test note   |
+| 2020-02-02 | 07:00        | 15:00      |              50 |         7.17 |            -0.63 |                -0.93 |         2 | Test note 2 |
+| 2020-03-02 | 06:00        | 14:00      |                 |              |                  |                -0.93 |         3 | Test note 3 |
 """,
         )
 
@@ -324,11 +324,11 @@ class TestStmp(unittest.TestCase):
         stmp.show_data()
         self.assertEqual(
             mock_stdout.getvalue(),
-            """| date       | start_time   | end_time   |   break_duration |   working_hours |   overtime_hours |   cumulative_overtime_hours |
-|------------|--------------|------------|------------------|-----------------|------------------|-----------------------------|
-| 2020-02-01 | 08:00        | 16:00      |               30 |            7.5  |            -0.3  |                       -0.3  |
-| 2020-02-02 | 07:00        | 15:00      |               50 |            7.17 |            -0.63 |                       -0.93 |
-| 2020-03-02 | 06:00        | 14:00      |                  |                 |                  |                       -0.93 |
+            """| date       | start_time   | end_time   |   break_minutes |   work_hours |   overtime_hours |   cum_overtime_hours |
+|------------|--------------|------------|-----------------|--------------|------------------|----------------------|
+| 2020-02-01 | 08:00        | 16:00      |              30 |         7.5  |            -0.3  |                -0.3  |
+| 2020-02-02 | 07:00        | 15:00      |              50 |         7.17 |            -0.63 |                -0.93 |
+| 2020-03-02 | 06:00        | 14:00      |                 |              |                  |                -0.93 |
 """,
         )
 
@@ -339,7 +339,7 @@ class TestStmp(unittest.TestCase):
         date=None,
         start_time=None,
         end_time=None,
-        break_duration=None,
+        break_minutes=None,
         note=None,
         overwrite=None,
     ):
@@ -348,7 +348,7 @@ class TestStmp(unittest.TestCase):
             date=date,
             start_time=start_time,
             end_time=end_time,
-            break_duration=break_duration,
+            break_minutes=break_minutes,
             note=note,
             overwrite=overwrite,
         )
@@ -360,7 +360,7 @@ class TestStmp(unittest.TestCase):
         work_hours_cursor: Cursor = stmp.db.execute(
             f"SELECT * FROM work_hours WHERE date = '{date}'"
         )
-        date, start_time, end_time, break_duration = work_hours_cursor.fetchone()
+        date, start_time, end_time, break_minutes = work_hours_cursor.fetchone()
         notes_cursor: Cursor = stmp.db.execute(
             f"SELECT * FROM notes WHERE date = '{date}'"
         )
@@ -368,7 +368,7 @@ class TestStmp(unittest.TestCase):
         self.assertEqual(date, date)
         self.assertEqual(start_time, start_time)
         self.assertEqual(end_time, end_time)
-        self.assertEqual(break_duration, break_duration)
+        self.assertEqual(break_minutes, break_minutes)
         self.assertEqual(note, note)
 
     @patch("builtins.open", new_callable=mock_open)
@@ -379,7 +379,7 @@ class TestStmp(unittest.TestCase):
             date="2020-02-01",
             start_time="08:00",
             end_time="16:00",
-            break_duration=30,
+            break_minutes=30,
             note="Test note",
             overwrite=True,
         )
@@ -391,7 +391,7 @@ class TestStmp(unittest.TestCase):
         work_hours_cursor: Cursor = stmp.db.execute(
             "SELECT * FROM work_hours WHERE date = '2020-02-01'"
         )
-        date, start_time, end_time, break_duration = work_hours_cursor.fetchone()
+        date, start_time, end_time, break_minutes = work_hours_cursor.fetchone()
         notes_cursor: Cursor = stmp.db.execute(  # type: ignore
             "SELECT * FROM notes WHERE date = '2020-02-01'"
         )
@@ -399,7 +399,7 @@ class TestStmp(unittest.TestCase):
         self.assertEqual(date, "2020-02-01")
         self.assertEqual(start_time, "08:00")
         self.assertEqual(end_time, "16:00")
-        self.assertEqual(break_duration, 30)
+        self.assertEqual(break_minutes, 30)
         self.assertEqual(note, "Test note")
 
         # dump
@@ -417,7 +417,7 @@ class TestStmp(unittest.TestCase):
             date="2020-02-01",
             start_time="08:00",
             end_time="16:00",
-            break_duration=30,
+            break_minutes=30,
             note="Test note",
             overwrite=True,
         )
@@ -428,11 +428,11 @@ class TestStmp(unittest.TestCase):
         work_hours_cursor: Cursor = stmp.db.execute(
             "SELECT * FROM work_hours WHERE date = '2020-02-01'"
         )
-        date, start_time, end_time, break_duration = work_hours_cursor.fetchone()
+        date, start_time, end_time, break_minutes = work_hours_cursor.fetchone()
         self.assertEqual(date, "2020-02-01")
         self.assertEqual(start_time, "08:00")
         self.assertEqual(end_time, "16:00")
-        self.assertEqual(break_duration, 30)
+        self.assertEqual(break_minutes, 30)
 
         # check
         args = argparse.Namespace(command="check")
@@ -447,7 +447,7 @@ class TestStmp(unittest.TestCase):
             date="2020-02-02",
             start_time="08:00",
             end_time=None,
-            break_duration=None,
+            break_minutes=None,
             note="Test note",
             overwrite=True,
         )
@@ -459,7 +459,7 @@ class TestStmp(unittest.TestCase):
         stmp.check_data()
         self.assertEqual(
             mock_stdout.getvalue(),
-            "Missing end_time for 2020-02-02\nMissing break_duration for 2020-02-02\n",
+            "Missing end_time for 2020-02-02\nMissing break_minutes for 2020-02-02\n",
         )
 
     @patch("sys.stdout", new_callable=StringIO)

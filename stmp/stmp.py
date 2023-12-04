@@ -47,7 +47,7 @@ class Stmp:
                     "date": str,
                     "start_time": int,
                     "end_time": int,
-                    "break_duration": float,
+                    "break_minutes": float,
                 },
                 pk="date",
             )
@@ -69,7 +69,7 @@ class Stmp:
         """
         Checks the arguments passed to the "add" command.
 
-        This method checks if at least one of the arguments --start_time, --end_time, --break_duration, or --note is set.
+        This method checks if at least one of the arguments --start_time, --end_time, --break_minutes, or --note is set.
         If this condition is not met, it raises an error.
 
         Args:
@@ -83,12 +83,12 @@ class Stmp:
                 for arg in [
                     self.args.start_time,
                     self.args.end_time,
-                    self.args.break_duration,
+                    self.args.break_minutes,
                     self.args.note,
                 ]
         ):
             parser.error(
-                "At least one argument of --start_time, --end_time, --break_duration or --note needs to be set."
+                "At least one argument of --start_time, --end_time, --break_minutes or --note needs to be set."
             )
 
     def check_rm_parser_arguments(self, parser: argparse.ArgumentParser) -> None:
@@ -188,7 +188,7 @@ class Stmp:
                 self.args.date,
                 self.args.start_time,
                 self.args.end_time,
-                self.args.break_duration,
+                self.args.break_minutes,
                 table,
             )
         else:
@@ -197,7 +197,7 @@ class Stmp:
                     self.args.date,
                     self.args.start_time,
                     self.args.end_time,
-                    self.args.break_duration,
+                    self.args.break_minutes,
                     table,
                     row,
                 )
@@ -206,7 +206,7 @@ class Stmp:
                     self.args.date,
                     self.args.start_time,
                     self.args.end_time,
-                    self.args.break_duration,
+                    self.args.break_minutes,
                     table,
                     row,
                 )
@@ -226,7 +226,7 @@ class Stmp:
             date: str,
             start_time: Optional[str],
             end_time: Optional[str],
-            break_duration: Optional[int],
+            break_minutes: Optional[int],
             table: Table,
     ) -> None:
         """
@@ -240,7 +240,7 @@ class Stmp:
                 "date": date,
                 "start_time": start_time,
                 "end_time": end_time,
-                "break_duration": break_duration,
+                "break_minutes": break_minutes,
             }
         )
 
@@ -249,7 +249,7 @@ class Stmp:
             date: str,
             start_time: Optional[str],
             end_time: Optional[str],
-            break_duration: Optional[int],
+            break_minutes: Optional[int],
             table: Table,
             row: dict,
     ) -> None:
@@ -262,15 +262,15 @@ class Stmp:
         """
         start_time = start_time if start_time is not None else row["start_time"]
         end_time = end_time if end_time is not None else row["end_time"]
-        break_duration = (
-            break_duration if break_duration is not None else row["break_duration"]
+        break_minutes = (
+            break_minutes if break_minutes is not None else row["break_minutes"]
         )
         table.upsert(
             {
                 "date": date,
                 "start_time": start_time,
                 "end_time": end_time,
-                "break_duration": break_duration,
+                "break_minutes": break_minutes,
             },
             pk="date",  # type: ignore
         )
@@ -280,7 +280,7 @@ class Stmp:
             date: str,
             start_time: Optional[str],
             end_time: Optional[str],
-            break_duration: Optional[int],
+            break_minutes: Optional[int],
             table: Table,
             row: dict,
     ) -> None:
@@ -291,21 +291,21 @@ class Stmp:
             date (str): The date for the work hours.
             start_time (str): The start time for the work hours.
             end_time (str): The end time for the work hours.
-            break_duration (int): The break duration for the work hours.
+            break_minutes (int): The break duration for the work hours.
             table (Table): The database table to upsert into.
             row (dict): The existing row in the database.
         """
         start_time = start_time if row["start_time"] is None else row["start_time"]
         end_time = end_time if row["end_time"] is None else row["end_time"]
-        break_duration = (
-            break_duration if row["break_duration"] is None else row["break_duration"]
+        break_minutes = (
+            break_minutes if row["break_minutes"] is None else row["break_minutes"]
         )
         table.upsert(
             {
                 "date": date,
                 "start_time": start_time,
                 "end_time": end_time,
-                "break_duration": break_duration,
+                "break_minutes": break_minutes,
             },
             pk="date",  # type: ignore
         )
@@ -565,8 +565,8 @@ class Stmp:
                 print(f"Missing start_time for {row['date']}")
             if row["end_time"] is None:
                 print(f"Missing end_time for {row['date']}")
-            if row["break_duration"] is None:
-                print(f"Missing break_duration for {row['date']}")
+            if row["break_minutes"] is None:
+                print(f"Missing break_minutes for {row['date']}")
 
     def set_config_value(self) -> None:
         """

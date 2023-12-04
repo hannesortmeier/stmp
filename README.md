@@ -29,7 +29,7 @@ To use stmp, you can use the following commands:
 
 - To add a working hours and notes for a day:
 ```bash
-stmp add --date YYYY-MM-DD --start_time HH:MM --end_time HH:MM --break_duration MM --note "Your note"
+stmp add --date YYYY-MM-DD --start_time HH:MM --end_time HH:MM --break_minutes MM --note "Your note"
 ```
 You can omit almost all arguments and stmp uses the current date as a default:
 ```bash
@@ -76,11 +76,11 @@ options:
 This tool allows you to record your working hours and breaks, and manage notes.
 
 To add a record:
-    stmp add -d <date> -s <start_time> -e <end_time> -b <break_duration> -n <note> -o <overwrite>
+    stmp add -d <date> -s <start_time> -e <end_time> -b <break_minutes> -n <note> -o <overwrite>
     -d, --date: Date in YYYY-MM-DD format. If not specified, the current date is used.
     -s, --start_time: Start time in HH:MM format. If not specified, the existing value is used.
     -e, --end_time: End time in HH:MM format. If not specified, the existing value is used.
-    -b, --break_duration: Break duration in minutes. If not specified, the existing value is used.
+    -b, --break_minutes: Break duration in minutes. If not specified, the existing value is used.
     -n, --note: Add a note for the day. If not specified, no note is added.
     -o, --overwrite: Boolean to indicate whether to overwrite existing data. Default is True.
 
