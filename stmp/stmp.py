@@ -8,7 +8,9 @@ from datetime import datetime
 from .formatter_factory import FormatterFactory
 
 WORK_HOURS_TABLE_NAME = "work_hours"
+WORK_HOURS_VIEW_NAME = "work_hours_view"
 NOTES_TABLE_NAME = "notes"
+MEAN_WORK_TIME = 7.8
 
 
 class Stmp:
@@ -45,6 +47,12 @@ class Stmp:
                 NOTES_TABLE_NAME, {"id": int, "date": str, "note": str}, pk="id"
             )
 
+        # Create work_hours_view view if it doesn't exist
+        if not self.db.table(WORK_HOURS_VIEW_NAME).exists():
+            with open(os.path.join(os.path.dirname(__file__), "sql/create_work_hours_view.sql"), "r") as file:
+                create_view_sql = file.read()
+            self.db.execute(create_view_sql.format(WORK_HOURS_VIEW_NAME, MEAN_WORK_TIME, MEAN_WORK_TIME))
+
     def check_add_parser_arguments(self, parser: argparse.ArgumentParser) -> None:
         """
         Checks the arguments passed to the "add" command.
@@ -59,13 +67,13 @@ class Stmp:
             argparse.ArgumentError: If the arguments do not meet the required conditions.
         """
         if all(
-            arg is None
-            for arg in [
-                self.args.start_time,
-                self.args.end_time,
-                self.args.break_duration,
-                self.args.note,
-            ]
+                arg is None
+                for arg in [
+                    self.args.start_time,
+                    self.args.end_time,
+                    self.args.break_duration,
+                    self.args.note,
+                ]
         ):
             parser.error(
                 "At least one argument of --start_time, --end_time, --break_duration or --note needs to be set."
@@ -111,9 +119,9 @@ class Stmp:
         """
         if self.args.date is not None:
             if (
-                self.args.month is not None
-                or self.args.year is not None
-                or self.args.all is not None
+                    self.args.month is not None
+                    or self.args.year is not None
+                    or self.args.all is not None
             ):
                 parser.error(
                     "If --date is set, --month, --year and --all must not be set."
@@ -126,9 +134,9 @@ class Stmp:
                 parser.error("If --year is set, --date and --all must not be set.")
         elif self.args.all is not None:
             if (
-                self.args.date is not None
-                or self.args.month is not None
-                or self.args.year is not None
+                    self.args.date is not None
+                    or self.args.month is not None
+                    or self.args.year is not None
             ):
                 parser.error(
                     "If --all is set, --date, --month and --year must not be set."
@@ -202,12 +210,12 @@ class Stmp:
         return row
 
     def insert_work_hours(
-        self,
-        date: str,
-        start_time: Optional[str],
-        end_time: Optional[str],
-        break_duration: Optional[int],
-        table: Table,
+            self,
+            date: str,
+            start_time: Optional[str],
+            end_time: Optional[str],
+            break_duration: Optional[int],
+            table: Table,
     ) -> None:
         """
         Inserts a new record of work hours into the database.
@@ -225,13 +233,13 @@ class Stmp:
         )
 
     def overwrite_upsert_work_hours(
-        self,
-        date: str,
-        start_time: Optional[str],
-        end_time: Optional[str],
-        break_duration: Optional[int],
-        table: Table,
-        row: dict,
+            self,
+            date: str,
+            start_time: Optional[str],
+            end_time: Optional[str],
+            break_duration: Optional[int],
+            table: Table,
+            row: dict,
     ) -> None:
         """
         Overwrites an existing record of work hours in the database.
@@ -256,13 +264,13 @@ class Stmp:
         )
 
     def no_overwrite_upsert_work_hours(
-        self,
-        date: str,
-        start_time: Optional[str],
-        end_time: Optional[str],
-        break_duration: Optional[int],
-        table: Table,
-        row: dict,
+            self,
+            date: str,
+            start_time: Optional[str],
+            end_time: Optional[str],
+            break_duration: Optional[int],
+            table: Table,
+            row: dict,
     ) -> None:
         """
         Upserts work hours in the database without overwriting existing values.
@@ -355,36 +363,34 @@ class Stmp:
         Returns:
         None
         """
-        work_hours_table: (Table | View) = self.db.table(WORK_HOURS_TABLE_NAME)
+        work_hours_view: (Table | View) = self.db.table(WORK_HOURS_VIEW_NAME)
         notes_table: (Table | View) = self.db.table(NOTES_TABLE_NAME)
-        assert isinstance(work_hours_table, Table)
+        assert isinstance(work_hours_view, View)
         assert isinstance(notes_table, Table)
 
-        work_hours: List[dict] = []
-
         if self.args.date is not None:
-            work_hours = self.show_date_data(work_hours_table, notes_table)
+            work_hours = self.show_date_data(work_hours_view, notes_table)
 
         elif self.args.month is not None:
             work_hours = self.show_month_data(
-                work_hours_table, notes_table, self.args.month
+                work_hours_view, notes_table, self.args.month
             )
 
         elif self.args.year is not None:
-            work_hours = self.show_year_data(work_hours_table, notes_table)
+            work_hours = self.show_year_data(work_hours_view, notes_table)
 
         elif self.args.all is not None:
-            work_hours = self.show_all_data(work_hours_table, notes_table)
+            work_hours = self.show_all_data(work_hours_view, notes_table)
 
         else:
             work_hours = self.show_month_data(
-                work_hours_table, notes_table, datetime.now().strftime("%m")
+                work_hours_view, notes_table, datetime.now().strftime("%m")
             )
 
         formatter = FormatterFactory(self.args.format).get_formatter()
         print(formatter.format(work_hours))
 
-    def show_date_data(self, work_hours_table: Table, notes_table: Table) -> List[dict]:
+    def show_date_data(self, work_hours_view: View, notes_table: Table) -> List[dict]:
         """
         Fetches work hours for a specific date and appends any notes for that date if the --notes flag is set.
 
@@ -395,15 +401,15 @@ class Stmp:
         Returns:
         List[dict]: A list of dictionaries containing work hours data and notes for the specified date if the --notes flag is set.
         """
-        work_hours_per_date = work_hours_table.get(self.args.date)
+        work_hours_per_date = work_hours_view.rows_where("date = ?", [self.args.date])
         if self.args.notes:
             return self.append_notes_to_work_hours_data(
-                (x for x in [work_hours_per_date]), notes_table
+                work_hours_per_date, notes_table
             )
-        return [work_hours_per_date]
+        return [entry for i, entry in enumerate(work_hours_per_date)]
 
     def show_month_data(
-        self, work_hours_table: Table, notes_table: Table, month: str
+            self, work_hours_view: View, notes_table: Table, month: str
     ) -> List[dict]:
         """
         Fetches work hours for a specific month and appends any notes for that month if the --notes flag is set.
@@ -423,7 +429,7 @@ class Stmp:
 
         work_hours_per_month_gen: Generator[
             dict, None, None
-        ] = work_hours_table.rows_where(
+        ] = work_hours_view.rows_where(
             "date LIKE ?", [f"{year}-{month}-%"], order_by="date"
         )
         if self.args.notes:
@@ -432,7 +438,7 @@ class Stmp:
             )
         return [entry for i, entry in enumerate(work_hours_per_month_gen)]
 
-    def show_year_data(self, work_hours_table: Table, notes_table: Table) -> List[dict]:
+    def show_year_data(self, work_hours_view: View, notes_table: Table) -> List[dict]:
         """
         Fetches work hours for a specific year and appends any notes for that year if the --notes flag is set.
 
@@ -445,7 +451,7 @@ class Stmp:
         """
         work_hours_per_year_gen: Generator[
             dict, None, None
-        ] = work_hours_table.rows_where(
+        ] = work_hours_view.rows_where(
             "date LIKE ?", [f"{self.args.year}-%"], order_by="date"
         )
         if self.args.notes:
@@ -454,7 +460,7 @@ class Stmp:
             )
         return [entry for i, entry in enumerate(work_hours_per_year_gen)]
 
-    def show_all_data(self, work_hours_table: Table, notes_table: Table) -> List[dict]:
+    def show_all_data(self, work_hours_view: View, notes_table: Table) -> List[dict]:
         """
         Fetches all work hours and appends any notes if the --notes flag is set.
 
@@ -465,7 +471,7 @@ class Stmp:
         Returns:
         List[dict]: A list of dictionaries containing all work hours data and notes if the --notes flag is set.
         """
-        work_hours_gen: Generator[dict, None, None] = work_hours_table.rows_where(
+        work_hours_gen: Generator[dict, None, None] = work_hours_view.rows_where(
             order_by="date"
         )
         if self.args.notes:
@@ -473,7 +479,7 @@ class Stmp:
         return [entry for i, entry in enumerate(work_hours_gen)]
 
     def append_notes_to_work_hours_data(
-        self, work_hours_gen: Generator, notes_table: Table
+            self, work_hours_gen: Generator, notes_table: Table
     ) -> List[dict]:
         """
         Appends notes to work hours data.

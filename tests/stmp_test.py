@@ -170,6 +170,9 @@ class TestStmp(unittest.TestCase):
         "start_time": "08:00",
         "end_time": "16:00",
         "break_duration": 30.0,
+        "working_hours": 7.5,
+        "overtime_hours": -0.3,
+        "cumulative_overtime_hours": -0.3,
         "notes": [
             {
                 "id": 1,
@@ -199,7 +202,10 @@ class TestStmp(unittest.TestCase):
         "date": "2020-02-01",
         "start_time": "08:00",
         "end_time": "16:00",
-        "break_duration": 30.0
+        "break_duration": 30.0,
+        "working_hours": 7.5,
+        "overtime_hours": -0.3,
+        "cumulative_overtime_hours": -0.3
     }
 ]
 """,
@@ -230,10 +236,10 @@ class TestStmp(unittest.TestCase):
         stmp.show_data()
         self.assertEqual(
             mock_stdout.getvalue(),
-            """| date       | start_time   | end_time   |   break_duration |   note_id | note        |
-|------------|--------------|------------|------------------|-----------|-------------|
-| 2020-02-01 | 08:00        | 16:00      |               30 |         1 | Test note   |
-| 2020-02-02 | 07:00        | 15:00      |               50 |         2 | Test note 2 |
+            """| date       | start_time   | end_time   |   break_duration |   working_hours |   overtime_hours |   cumulative_overtime_hours |   note_id | note        |
+|------------|--------------|------------|------------------|-----------------|------------------|-----------------------------|-----------|-------------|
+| 2020-02-01 | 08:00        | 16:00      |               30 |            7.5  |            -0.3  |                       -0.3  |         1 | Test note   |
+| 2020-02-02 | 07:00        | 15:00      |               50 |            7.17 |            -0.63 |                       -0.93 |         2 | Test note 2 |
 """,
         )
 
@@ -292,11 +298,11 @@ class TestStmp(unittest.TestCase):
         stmp.show_data()
         self.assertEqual(
             mock_stdout.getvalue(),
-            """| date       | start_time   | end_time   |   break_duration |   note_id | note        |
-|------------|--------------|------------|------------------|-----------|-------------|
-| 2020-02-01 | 08:00        | 16:00      |               30 |         1 | Test note   |
-| 2020-02-02 | 07:00        | 15:00      |               50 |         2 | Test note 2 |
-| 2020-03-02 | 06:00        | 14:00      |                  |         3 | Test note 3 |
+            """| date       | start_time   | end_time   |   break_duration |   working_hours |   overtime_hours |   cumulative_overtime_hours |   note_id | note        |
+|------------|--------------|------------|------------------|-----------------|------------------|-----------------------------|-----------|-------------|
+| 2020-02-01 | 08:00        | 16:00      |               30 |            7.5  |            -0.3  |                       -0.3  |         1 | Test note   |
+| 2020-02-02 | 07:00        | 15:00      |               50 |            7.17 |            -0.63 |                       -0.93 |         2 | Test note 2 |
+| 2020-03-02 | 06:00        | 14:00      |                  |                 |                  |                       -0.93 |         3 | Test note 3 |
 """,
         )
 
@@ -318,11 +324,11 @@ class TestStmp(unittest.TestCase):
         stmp.show_data()
         self.assertEqual(
             mock_stdout.getvalue(),
-            """| date       | start_time   | end_time   |   break_duration |
-|------------|--------------|------------|------------------|
-| 2020-02-01 | 08:00        | 16:00      |               30 |
-| 2020-02-02 | 07:00        | 15:00      |               50 |
-| 2020-03-02 | 06:00        | 14:00      |                  |
+            """| date       | start_time   | end_time   |   break_duration |   working_hours |   overtime_hours |   cumulative_overtime_hours |
+|------------|--------------|------------|------------------|-----------------|------------------|-----------------------------|
+| 2020-02-01 | 08:00        | 16:00      |               30 |            7.5  |            -0.3  |                       -0.3  |
+| 2020-02-02 | 07:00        | 15:00      |               50 |            7.17 |            -0.63 |                       -0.93 |
+| 2020-03-02 | 06:00        | 14:00      |                  |                 |                  |                       -0.93 |
 """,
         )
 
