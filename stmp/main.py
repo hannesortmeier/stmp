@@ -76,6 +76,13 @@ To dump all data:
 
 To check the database entries for completeness:
     stmp check
+    
+To configure stmp or list configuration key value pairs:
+    stmp config set -k <key> -v <value>
+    stmp config list -k <key>
+    stmp config rm -k <key>
+    -k, --key: Key
+    -v, --value: Value
 """,
         formatter_class=argparse.RawTextHelpFormatter,
     )
@@ -176,6 +183,25 @@ To check the database entries for completeness:
     check_parser = subparsers.add_parser(
         "check", help="Check the database entries for completeness"
     )
+
+    # config parser
+    config_parser = subparsers.add_parser(
+        "config", help="Configure stmp"
+    )
+    subsubparser = config_parser.add_subparsers(dest="subcommand")
+    set_config_parser = subsubparser.add_parser(
+        "set", help="Set a configuration key value pair"
+    )
+    set_config_parser.add_argument("--key", "-k", type=str, help="Key", required=True)
+    set_config_parser.add_argument("--value", "-v", type=str, help="Value", required=True)
+    list_config_parser = subsubparser.add_parser(
+        "list", help="List configuration key value pairs"
+    )
+    list_config_parser.add_argument("--key", "-k", type=str, help="Key", required=False)
+    rm_config_parser = subsubparser.add_parser(
+        "rm", help="Remove a configuration key value pair"
+    )
+    rm_config_parser.add_argument("--key", "-k", type=str, help="Key", required=True)
 
     args = parser.parse_args()
 

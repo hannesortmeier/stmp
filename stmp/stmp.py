@@ -10,7 +10,8 @@ from .formatter_factory import FormatterFactory
 WORK_HOURS_TABLE_NAME = "work_hours"
 WORK_HOURS_VIEW_NAME = "work_hours_view"
 NOTES_TABLE_NAME = "notes"
-MEAN_WORK_TIME = 7.8
+CONFIG_TABLE_NAME = "config"
+MEAN_WORK_TIME_DEFAULT = 7.8
 
 
 class Stmp:
@@ -27,6 +28,16 @@ class Stmp:
 
         # Initialize the database
         self.db = db
+
+        # Create config table if it doesn't exist
+        if not self.db.table(CONFIG_TABLE_NAME).exists():
+            self.db.create_table(CONFIG_TABLE_NAME, {"key": str, "value": str}, pk="key")
+            table: (Table | View) = self.db.table(CONFIG_TABLE_NAME)
+            assert isinstance(table, Table)
+            table.insert({"key": "mean_work_time", "value": str(MEAN_WORK_TIME_DEFAULT)})
+            self.mean_work_time = MEAN_WORK_TIME_DEFAULT
+        else:
+            self.mean_work_time = float(self.db.table(CONFIG_TABLE_NAME).get("mean_work_time")["value"])  # type: ignore
 
         # Create the work_hours table if it doesn't exist
         if not self.db.table(WORK_HOURS_TABLE_NAME).exists():
@@ -51,7 +62,8 @@ class Stmp:
         if not self.db.table(WORK_HOURS_VIEW_NAME).exists():
             with open(os.path.join(os.path.dirname(__file__), "sql/create_work_hours_view.sql"), "r") as file:
                 create_view_sql = file.read()
-            self.db.execute(create_view_sql.format(WORK_HOURS_VIEW_NAME, MEAN_WORK_TIME, MEAN_WORK_TIME))
+            self.db.execute(create_view_sql.format(WORK_HOURS_VIEW_NAME, self.mean_work_time, self.mean_work_time))
+
 
     def check_add_parser_arguments(self, parser: argparse.ArgumentParser) -> None:
         """
@@ -556,6 +568,47 @@ class Stmp:
             if row["break_duration"] is None:
                 print(f"Missing break_duration for {row['date']}")
 
+    def set_config_value(self) -> None:
+        """
+        Sets a value in the config table.
+
+        Args:
+            key (str): The key to set.
+            value (str): The value to set.
+        """
+        table: (Table | View) = self.db.table(CONFIG_TABLE_NAME)
+        assert isinstance(table, Table)
+        table.upsert({"key": self.args.key, "value": self.args.value}, pk="key")
+        print("Successfully set config value.")
+
+    def list_config_values(self) -> None:
+        """
+        Lists all values in the config table.
+
+        Args:
+            key (Optional[str]): The key to list. If None, all keys are listed.
+        """
+        table: (Table | View) = self.db.table(CONFIG_TABLE_NAME)
+        assert isinstance(table, Table)
+        if self.args.key is None:
+            for row in table.rows:
+                print(f"{row['key']}: {row['value']}")
+        else:
+            row = table.get(self.args.key)
+            print(f"{row['key']}: {row['value']}")
+
+    def rm_config_value(self) -> None:
+        """
+        Removes a value from the config table.
+
+        Args:
+            key (str): The key to remove.
+        """
+        table: (Table | View) = self.db.table(CONFIG_TABLE_NAME)
+        assert isinstance(table, Table)
+        table.delete(self.args.key)
+        print("Successfully removed config value.")
+
     def execute(self, parser: argparse.ArgumentParser) -> None:
         """
         Executes the appropriate command based on the command-line arguments.
@@ -583,3 +636,10 @@ class Stmp:
             self.dump_data()
         elif self.args.command == "check":
             self.check_data()
+        elif self.args.command == "config":
+            if self.args.subcommand == "list":
+                self.list_config_values()
+            elif self.args.subcommand == "set":
+                self.set_config_value()
+            elif self.args.subcommand == "rm":
+                self.rm_config_value()

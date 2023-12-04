@@ -15,7 +15,7 @@ class TestStmp(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         # Specify the database file path
-        db_file_paths = ["test2.db", "test3.db", "test4.db", "test5.db"]
+        db_file_paths = ["test2.db", "test3.db", "test4.db", "test5.db", "test6.db"]
 
         # Remove the database file
         for db_file_path in db_file_paths:
@@ -392,7 +392,7 @@ class TestStmp(unittest.TestCase):
             "SELECT * FROM work_hours WHERE date = '2020-02-01'"
         )
         date, start_time, end_time, break_duration = work_hours_cursor.fetchone()
-        notes_cursor: Cursor = stmp.db.execute(
+        notes_cursor: Cursor = stmp.db.execute(  # type: ignore
             "SELECT * FROM notes WHERE date = '2020-02-01'"
         )
         id, date, note = notes_cursor.fetchone()
@@ -461,6 +461,47 @@ class TestStmp(unittest.TestCase):
             mock_stdout.getvalue(),
             "Missing end_time for 2020-02-02\nMissing break_duration for 2020-02-02\n",
         )
+
+    @patch("sys.stdout", new_callable=StringIO)
+    def test_config_parser(self, mock_stdout):
+        # test config set
+        args = argparse.Namespace(
+            command="config",
+            subcommand="set",
+            key="test_key",
+            value="test_value",
+        )
+        stmp = Stmp(Database("test6.db"), args)
+        stmp.set_config_value()
+        cursor: Cursor = stmp.db.execute(  # type: ignore
+            "SELECT * FROM config WHERE key = 'test_key'"
+        )
+        key, value = cursor.fetchone()
+        self.assertEqual(key, "test_key")
+        self.assertEqual(value, "test_value")
+
+        # test config list
+        args = argparse.Namespace(
+            command="config",
+            key=None,
+            value=None,
+        )
+        stmp = Stmp(Database("test6.db"), args)
+        stmp.list_config_values()
+        self.assertIn("test_key: test_value\n", mock_stdout.getvalue())
+
+        # test config rm
+        args = argparse.Namespace(
+            command="config",
+            key="test_key",
+            value=None,
+        )
+        stmp = Stmp(Database("test6.db"), args)
+        stmp.rm_config_value()
+        cursor: Cursor = stmp.db.execute(  # type: ignore
+            "SELECT * FROM config WHERE key = 'test_key'"
+        )
+        self.assertIsNone(cursor.fetchone())
 
 
 if __name__ == "__main__":
