@@ -62,12 +62,13 @@ usage: stmp.py [-h] {add,rm,show,dump,check} ...
 Record working hours.
 
 positional arguments:
-  {add,rm,show,dump,check}
+  {add,rm,show,dump,check,config}
     add                 Add times and notes for the day
     rm                  Remove a record
     show                Show hours and notes
     dump                Dump the database
     check               Check the database entries for completeness
+    config              Configure stmp
 
 options:
   -h, --help            show this help message and exit
