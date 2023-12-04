@@ -105,6 +105,13 @@ To dump all data:
 
 To check the database entries for completeness:
     stmp check
+    
+To configure stmp or list configuration key value pairs:
+    stmp config set -k <key> -v <value>
+    stmp config list -k <key>
+    stmp config rm -k <key>
+    -k, --key: Key
+    -v, --value: Value
 ```
 
 
