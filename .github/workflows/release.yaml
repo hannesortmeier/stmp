@@ -28,7 +28,9 @@ jobs:
       - name: build
         run: poetry build
       - name: publish
-        run: poetry publish --repository pypi --username __token__ --password ${{ secrets.POETRY_PYPI_TOKEN }}
+        run: |
+          - poetry config repositories.pypi https://upload.pypi.org/legacy/  
+          - poetry publish --repository pypi --username __token__ --password ${{ secrets.POETRY_PYPI_TOKEN }}
       - name: github release
         run: gh release create ${{ github.ref_name }} --generate-notes
         env:
