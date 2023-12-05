@@ -1,0 +1,29 @@
+name: main
+on:
+  push:
+    branches:
+      - "*"
+
+permissions:
+  id-token: write
+  contents: write
+
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - run: pipx install poetry
+      - uses: actions/setup-python@v4
+        with:
+         python-version-file: .python-version
+         cache: 'poetry'
+      - run: poetry install
+      - name: lint
+        run: poetry run ruff check tests/ stmp/
+      - name: test
+        run: poetry run pytest tests/ --cov=src/ --cov-report=xml --cov-report=term-missing
+      - name: build
+        run: poetry build

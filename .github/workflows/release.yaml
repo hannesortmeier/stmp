@@ -1,0 +1,35 @@
+name: release
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  id-token: write
+  contents: write
+
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - run: pipx install poetry
+      - uses: actions/setup-python@v4
+        with:
+         python-version-file: .python-version
+         cache: 'poetry'
+      - run: poetry install
+      - name: lint
+        run: poetry run ruff check tests/ stmp/
+      - name: test
+        run: poetry run pytest tests/ --cov=src/ --cov-report=xml --cov-report=term-missing
+      - name: build
+        run: poetry build
+      - name: publish
+        run: poetry publish --repository pypi --username __token__ --password ${{ secrets.POETRY_PYPI_TOKEN }}
+      - name: github release
+        run: gh release create ${{ github.ref_name }} --generate-notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
