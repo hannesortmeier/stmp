@@ -11,7 +11,7 @@ read -er -p 'What should the next stmp version be? ' new_version
 if [[ -n "$new_version" ]]; then
   poetry version "$new_version"
   git add pyproject.toml
-  message="Prepare release v$new_version"
+  message="release: v$new_version"
   git commit -m "$message"
   git tag -a -m "$message" "v$new_version"
   git push --atomic --follow-tags
