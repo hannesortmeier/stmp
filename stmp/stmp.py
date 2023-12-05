@@ -42,7 +42,7 @@ class Stmp:
             self.mean_work_time = MEAN_WORK_TIME_DEFAULT
         else:
             self.mean_work_time = float(
-                self.db.table(CONFIG_TABLE_NAME).get("mean_work_time")["value"]
+                self.db.table(CONFIG_TABLE_NAME).get("mean_work_time")["value"]  # type: ignore
             )  # type: ignore
 
         # Create the work_hours table if it doesn't exist

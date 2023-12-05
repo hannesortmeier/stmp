@@ -4,6 +4,8 @@
 
 stmp is a command-line interface (CLI) tool designed to help developers and other professionals track their work hours and notes. Born out of the need for a simple, flexible, and efficient time tracking tool, stmp aims to make time management as seamless as possible.
 
+The European Court of Justice (ECJ) ruling mandated that employers in the EU must set up a system to accurately measure the working time of their employees. This is to ensure compliance with maximum working hour regulations and guarantee adequate rest periods. The ruling emphasizes the need for a reliable and objective method to record daily working hours. stmp aims to provide a simple and efficient solution to this problem.
+
 ## Features
 
 - **Work Hours Tracking**: Easily log your start and end times for each work day.
