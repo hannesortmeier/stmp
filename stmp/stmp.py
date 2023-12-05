@@ -31,13 +31,19 @@ class Stmp:
 
         # Create config table if it doesn't exist
         if not self.db.table(CONFIG_TABLE_NAME).exists():
-            self.db.create_table(CONFIG_TABLE_NAME, {"key": str, "value": str}, pk="key")
+            self.db.create_table(
+                CONFIG_TABLE_NAME, {"key": str, "value": str}, pk="key"
+            )
             table: (Table | View) = self.db.table(CONFIG_TABLE_NAME)
             assert isinstance(table, Table)
-            table.insert({"key": "mean_work_time", "value": str(MEAN_WORK_TIME_DEFAULT)})
+            table.insert(
+                {"key": "mean_work_time", "value": str(MEAN_WORK_TIME_DEFAULT)}
+            )
             self.mean_work_time = MEAN_WORK_TIME_DEFAULT
         else:
-            self.mean_work_time = float(self.db.table(CONFIG_TABLE_NAME).get("mean_work_time")["value"])  # type: ignore
+            self.mean_work_time = float(
+                self.db.table(CONFIG_TABLE_NAME).get("mean_work_time")["value"]
+            )  # type: ignore
 
         # Create the work_hours table if it doesn't exist
         if not self.db.table(WORK_HOURS_TABLE_NAME).exists():
@@ -60,10 +66,18 @@ class Stmp:
 
         # Create work_hours_view view if it doesn't exist
         if not self.db.table(WORK_HOURS_VIEW_NAME).exists():
-            with open(os.path.join(os.path.dirname(__file__), "sql/create_work_hours_view.sql"), "r") as file:
+            with open(
+                os.path.join(
+                    os.path.dirname(__file__), "sql/create_work_hours_view.sql"
+                ),
+                "r",
+            ) as file:
                 create_view_sql = file.read()
-            self.db.execute(create_view_sql.format(WORK_HOURS_VIEW_NAME, self.mean_work_time, self.mean_work_time))
-
+            self.db.execute(
+                create_view_sql.format(
+                    WORK_HOURS_VIEW_NAME, self.mean_work_time, self.mean_work_time
+                )
+            )
 
     def check_add_parser_arguments(self, parser: argparse.ArgumentParser) -> None:
         """
@@ -79,13 +93,13 @@ class Stmp:
             argparse.ArgumentError: If the arguments do not meet the required conditions.
         """
         if all(
-                arg is None
-                for arg in [
-                    self.args.start_time,
-                    self.args.end_time,
-                    self.args.break_minutes,
-                    self.args.note,
-                ]
+            arg is None
+            for arg in [
+                self.args.start_time,
+                self.args.end_time,
+                self.args.break_minutes,
+                self.args.note,
+            ]
         ):
             parser.error(
                 "At least one argument of --start_time, --end_time, --break_minutes or --note needs to be set."
@@ -131,9 +145,9 @@ class Stmp:
         """
         if self.args.date is not None:
             if (
-                    self.args.month is not None
-                    or self.args.year is not None
-                    or self.args.all is not None
+                self.args.month is not None
+                or self.args.year is not None
+                or self.args.all is not None
             ):
                 parser.error(
                     "If --date is set, --month, --year and --all must not be set."
@@ -146,9 +160,9 @@ class Stmp:
                 parser.error("If --year is set, --date and --all must not be set.")
         elif self.args.all is not None:
             if (
-                    self.args.date is not None
-                    or self.args.month is not None
-                    or self.args.year is not None
+                self.args.date is not None
+                or self.args.month is not None
+                or self.args.year is not None
             ):
                 parser.error(
                     "If --all is set, --date, --month and --year must not be set."
@@ -222,12 +236,12 @@ class Stmp:
         return row
 
     def insert_work_hours(
-            self,
-            date: str,
-            start_time: Optional[str],
-            end_time: Optional[str],
-            break_minutes: Optional[int],
-            table: Table,
+        self,
+        date: str,
+        start_time: Optional[str],
+        end_time: Optional[str],
+        break_minutes: Optional[int],
+        table: Table,
     ) -> None:
         """
         Inserts a new record of work hours into the database.
@@ -245,13 +259,13 @@ class Stmp:
         )
 
     def overwrite_upsert_work_hours(
-            self,
-            date: str,
-            start_time: Optional[str],
-            end_time: Optional[str],
-            break_minutes: Optional[int],
-            table: Table,
-            row: dict,
+        self,
+        date: str,
+        start_time: Optional[str],
+        end_time: Optional[str],
+        break_minutes: Optional[int],
+        table: Table,
+        row: dict,
     ) -> None:
         """
         Overwrites an existing record of work hours in the database.
@@ -276,13 +290,13 @@ class Stmp:
         )
 
     def no_overwrite_upsert_work_hours(
-            self,
-            date: str,
-            start_time: Optional[str],
-            end_time: Optional[str],
-            break_minutes: Optional[int],
-            table: Table,
-            row: dict,
+        self,
+        date: str,
+        start_time: Optional[str],
+        end_time: Optional[str],
+        break_minutes: Optional[int],
+        table: Table,
+        row: dict,
     ) -> None:
         """
         Upserts work hours in the database without overwriting existing values.
@@ -421,7 +435,7 @@ class Stmp:
         return [entry for i, entry in enumerate(work_hours_per_date)]
 
     def show_month_data(
-            self, work_hours_view: View, notes_table: Table, month: str
+        self, work_hours_view: View, notes_table: Table, month: str
     ) -> List[dict]:
         """
         Fetches work hours for a specific month and appends any notes for that month if the --notes flag is set.
@@ -491,7 +505,7 @@ class Stmp:
         return [entry for i, entry in enumerate(work_hours_gen)]
 
     def append_notes_to_work_hours_data(
-            self, work_hours_gen: Generator, notes_table: Table
+        self, work_hours_gen: Generator, notes_table: Table
     ) -> List[dict]:
         """
         Appends notes to work hours data.

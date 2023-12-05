@@ -131,7 +131,10 @@ To configure stmp or list configuration key value pairs:
     rm_either = rm_parser.add_mutually_exclusive_group()
     rm_either.add_argument("--id", "-i", type=int, help="ID of the note to remove")
     rm_either.add_argument(
-        "--date", "-d", type=lambda x: _check_argparse_input(x, "%Y-%m-%d", 10), help="Date of the record to remove"
+        "--date",
+        "-d",
+        type=lambda x: _check_argparse_input(x, "%Y-%m-%d", 10),
+        help="Date of the record to remove",
     )
 
     # show parser
@@ -180,20 +183,18 @@ To configure stmp or list configuration key value pairs:
     dump_parser.add_argument("--destination", "-d", type=str, help="Destination folder")
 
     # check parser
-    check_parser = subparsers.add_parser(
-        "check", help="Check the database entries for completeness"
-    )
+    subparsers.add_parser("check", help="Check the database entries for completeness")
 
     # config parser
-    config_parser = subparsers.add_parser(
-        "config", help="Configure stmp"
-    )
+    config_parser = subparsers.add_parser("config", help="Configure stmp")
     subsubparser = config_parser.add_subparsers(dest="subcommand")
     set_config_parser = subsubparser.add_parser(
         "set", help="Set a configuration key value pair"
     )
     set_config_parser.add_argument("--key", "-k", type=str, help="Key", required=True)
-    set_config_parser.add_argument("--value", "-v", type=str, help="Value", required=True)
+    set_config_parser.add_argument(
+        "--value", "-v", type=str, help="Value", required=True
+    )
     list_config_parser = subsubparser.add_parser(
         "list", help="List configuration key value pairs"
     )
